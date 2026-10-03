@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZENTRO DEALERSHIP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">
+            <span>Z</span>
+            ZENTRO
+        </div>
+
+        <div class="dealer-name">
+            <small>CONCESSION</small>
+            <strong>ZEN​TRO MOTORS</strong>
+        </div>
+
+        <nav>
+            <button class="nav-btn active" data-page="dashboard">
+                <span>⌂</span> Accueil
+            </button>
+
+            <button class="nav-btn" data-page="stock">
+                <span>🚘</span> Stock
+            </button>
+
+            <button class="nav-btn" data-page="market">
+                <span>◈</span> Marché
+            </button>
+
+            <button class="nav-btn" data-page="workshop">
+                <span>🔧</span> Atelier
+            </button>
+
+            <button class="nav-btn" data-page="sales">
+                <span>€</span> Ventes
+            </button>
+
+            <button class="nav-btn" data-page="stats">
+                <span>▥</span> Statistiques
+            </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="level">
+                <div>
+                    <small>NIVEAU</small>
+                    <strong>04</strong>
+                </div>
+                <div class="xp">
+                    <div class="xp-bar">
+                        <div></div>
+                    </div>
+                    <small>2 480 / 4 000 XP</small>
+                </div>
+            </div>
+
+            <button class="settings">⚙ Paramètres</button>
+        </div>
+    </aside>
+
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">SAMEDI • 03 OCTOBRE 2026</p>
+                <h1>Bonjour, concessionnaire.</h1>
+            </div>
+
+            <div class="top-actions">
+                <div class="money">
+                    <small>TRÉSORERIE</small>
+                    <strong id="money">250 000 €</strong>
+                </div>
+
+                <button class="notification" id="notificationButton">
+                    🔔
+                    <i></i>
+                </button>
+
+                <div class="profile">
+                    <div class="avatar">ZG</div>
+                    <div>
+                        <strong>ZEN​TRO</strong>
+                        <small>Directeur</small>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="page active-page">
+
+            <div class="hero">
+
+                <div class="hero-content">
+                    <span class="badge">VÉHICULE EN VEDETTE</span>
+
+                    <h2>BMW M4<br><span>Competition</span></h2>
+
+                    <p>
+                        Une sportive premium vient d'arriver dans votre
+                        showroom. Elle pourrait générer une excellente marge.
+                    </p>
+
+                    <div class="car-specs">
+                        <div>
+                            <small>PUISSANCE</small>
+                            <strong>510 ch</strong>
+                        </div>
+
+                        <div>
+                            <small>KM</small>
+                            <strong>18 420</strong>
+                        </div>
+
+                        <div>
+                            <small>ÉTAT</small>
+                            <strong>98%</strong>
+                        </div>
+                    </div>
+
+                    <button class="primary-btn" id="viewCar">
+                        Voir le véhicule →
+                    </button>
+                </div>
+
+                <div class="hero-car">
+                    <div class="glow"></div>
+                    <div class="car-placeholder">
+                        <span>BMW</span>
+                        <strong>M4</strong>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- STATS -->
+            <div class="stats-grid">
+
+                <div class="stat-card">
+                    <div class="stat-icon green">€</div>
+                    <div>
+                        <small>CHIFFRE D'AFFAIRES</small>
+                        <strong>684 500 €</strong>
+                        <em>+12,4%</em>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon blue">↗</div>
+                    <div>
+                        <small>BÉNÉFICES</small>
+                        <strong>92 840 €</strong>
+                        <em>+8,7%</em>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange">🚘</div>
+                    <div>
+                        <small>VÉHICULES EN STOCK</small>
+                        <strong id="stockCount">12</strong>
+                        <em>3 nouveaux</em>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon purple">★</div>
+                    <div>
+                        <small>RÉPUTATION</small>
+                        <strong>4,8 / 5</strong>
+                        <em>+0,2</em>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="content-grid">
+
+                <!-- STOCK -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <small>INVENTAIRE</small>
+                            <h3>Véhicules récents</h3>
+                        </div>
+
+                        <button class="link-btn" data-page-link="stock">
+                            Voir tout →
+                        </button>
+                    </div>
+
+                    <div class="cars-list">
+
+                        <div class="car-row">
+                            <div class="mini-car black"></div>
+                            <div class="car-info">
+                                <strong>BMW M4 Competition</strong>
+                                <small>2025 • 18 420 km • Essence</small>
+                            </div>
+                            <div class="car-price">
+                                <small>PRIX</small>
+                                <strong>94 900 €</strong>
+                            </div>
+                        </div>
+
+                        <div class="car-row">
+                            <div class="mini-car white"></div>
+                            <div class="car-info">
+                                <strong>Audi RS6 Avant</strong>
+                                <small>2025 • 9 820 km • Essence</small>
+                            </div>
+                            <div class="car-price">
+                                <small>PRIX</small>
+                                <strong>128 500 €</strong>
+                            </div>
+                        </div>
+
+                        <div class="car-row">
+                            <div class="mini-car blue"></div>
+                            <div class="car-info">
+                                <strong>Mercedes-AMG C63</strong>
+                                <small>2024 • 24 100 km • Hybride</small>
+                            </div>
+                            <div class="car-price">
+                                <small>PRIX</small>
+                                <strong>89 900 €</strong>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- EVENTS -->
+                <div class="panel events">
+                    <div class="panel-header">
+                        <div>
+                            <small>MARCHÉ</small>
+                            <h3>Événements</h3>
+                        </div>
+                    </div>
+
+                    <div class="event positive">
+                        <div class="event-icon">↗</div>
+                        <div>
+                            <strong>Forte demande</strong>
+                            <p>Les sportives se vendent 8% plus cher.</p>
+                        </div>
+                    </div>
+
+                    <div class="event warning">
+                        <div class="event-icon">!</div>
+                        <div>
+                            <strong>Attention au marché</strong>
+                            <p>Les SUV perdent actuellement de la valeur.</p>
+                        </div>
+                    </div>
+
+                    <div class="event neutral">
+                        <div class="event-icon">★</div>
+                        <div>
+                            <strong>Nouveau client</strong>
+                            <p>Un client VIP recherche une sportive.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- STOCK PAGE -->
+        <section id="stock" class="page">
+
+            <div class="page-title">
+                <div>
+                    <p class="eyebrow">INVENTAIRE</p>
+                    <h2>Votre stock</h2>
+                </div>
+
+                <button class="primary-btn" id="buyCar">
+                    + Acheter un véhicule
+                </button>
+            </div>
+
+            <div class="inventory-grid">
+
+                <div class="inventory-card">
+                    <div class="inventory-image black-car">
+                        <span>SPORT</span>
+                    </div>
+                    <div class="inventory-content">
+                        <small>BMW • 2025</small>
+                        <h3>M4 Competition</h3>
+                        <p>510 ch • 18 420 km</p>
+                        <div class="inventory-bottom">
+                            <strong>94 900 €</strong>
+                            <button class="sell-btn">Vendre</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="inventory-card">
+                    <div class="inventory-image white-car">
+                        <span>PREMIUM</span>
+                    </div>
+                    <div class="inventory-content">
+                        <small>AUDI • 2025</small>
+                        <h3>RS6 Avant</h3>
+                        <p>630 ch • 9 820 km</p>
+                        <div class="inventory-bottom">
+                            <strong>128 500 €</strong>
+                            <button class="sell-btn">Vendre</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="inventory-card">
+                    <div class="inventory-image blue-car">
+                        <span>SPORT</span>
+                    </div>
+                    <div class="inventory-content">
+                        <small>MERCEDES-AMG • 2024</small>
+                        <h3>C63 S E Performance</h3>
+                        <p>680 ch • 24 100 km</p>
+                        <div class="inventory-bottom">
+                            <strong>89 900 €</strong>
+                            <button class="sell-btn">Vendre</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- MARKET -->
+        <section id="market" class="page">
+
+            <div class="page-title">
+                <div>
+                    <p class="eyebrow">MARCHÉ AUTOMOBILE</p>
+                    <h2>Marché</h2>
+                </div>
+            </div>
+
+            <div class="market-panel">
+                <div class="market-header">
+                    <div>
+                        <small>INDICE DU MARCHÉ</small>
+                        <strong>+6,8%</strong>
+                    </div>
+
+                    <span class="market-up">↗ Marché favorable</span>
+                </div>
+
+                <div class="chart">
+                    <div class="line"></div>
+                    <div class="chart-labels">
+                        <span>LUN</span>
+                        <span>MAR</span>
+                        <span>MER</span>
+                        <span>JEU</span>
+                        <span>VEN</span>
+                        <span>SAM</span>
+                        <span>DIM</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- WORKSHOP -->
+        <section id="workshop" class="page">
+
+            <div class="page-title">
+                <div>
+                    <p class="eyebrow">CENTRE TECHNIQUE</p>
+                    <h2>Atelier</h2>
+                </div>
+            </div>
+
+            <div class="workshop-grid">
+
+                <div class="workshop-card">
+                    <span>🔧</span>
+                    <h3>Réparation</h3>
+                    <p>Remettez vos véhicules en parfait état.</p>
+                    <button>Ouvrir</button>
+                </div>
+
+                <div class="workshop-card">
+                    <span>🎨</span>
+                    <h3>Carrosserie</h3>
+                    <p>Peinture, jantes et personnalisation.</p>
+                    <button>Ouvrir</button>
+                </div>
+
+                <div class="workshop-card">
+                    <span>⚡</span>
+                    <h3>Performance</h3>
+                    <p>Améliorez les performances des véhicules.</p>
+                    <button>Ouvrir</button>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SALES -->
+        <section id="sales" class="page">
+
+            <div class="page-title">
+                <div>
+                    <p class="eyebrow">TRANSACTIONS</p>
+                    <h2>Ventes</h2>
+                </div>
+            </div>
+
+            <div class="sales-summary">
+
+                <div>
+                    <small>VENTES CE MOIS</small>
+                    <strong>17</strong>
+                </div>
+
+                <div>
+                    <small>BÉNÉFICE MOYEN</small>
+                    <strong>5 461 €</strong>
+                </div>
+
+                <div>
+                    <small>MARGE MOYENNE</small>
+                    <strong>11,8%</strong>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- STATS -->
+        <section id="stats" class="page">
+
+            <div class="page-title">
+                <div>
+                    <p class="eyebrow">PERFORMANCES</p>
+                    <h2>Statistiques</h2>
+                </div>
+            </div>
+
+            <div class="big-stat">
+                <small>CHIFFRE D'AFFAIRES TOTAL</small>
+                <strong>684 500 €</strong>
+
+                <div class="progress">
+                    <div></div>
+                </div>
+
+                <p>Objectif mensuel : 850 000 €</p>
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="main.js"></script>
+
+</body>
+</html>
