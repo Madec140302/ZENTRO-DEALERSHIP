@@ -1,1557 +1,1211 @@
+pour l'instant j'ai que ca et ca na charge pas alors que j'ai des voitures en stocks
+ca ouvre ca 
+
+Ahhh 👍 on vient de trouver quelque chose, mais ce n’est PAS l’erreur du showroom.
+
+L'adresse :
+
+https://madec140302.github.io/favicon.ico
+
+correspond simplement à l'icône du site (favicon). GitHub cherche favicon.ico, ne le trouve pas, donc il affiche 404.
+
+➡️ Ça n'empêche absolument pas le showroom 3D de fonctionner. On peut même ignorer cette erreur pour l'instant.
+
+Maintenant, on cherche la vraie erreur 🔎
+
+Retourne sur ton site ZENTRO DEALERSHIP, puis :
+
+Ctrl + Shift + I
+Clique sur Console
+Clique sur Showroom 3D
+Regarde les messages qui apparaissent juste après avoir cliqué.
+
+Tu peux notamment voir quelque chose comme :
+
+Uncaught ReferenceError: THREE is not defined
+
+ou
+
+Uncaught TypeError: ...
+
+ou
+
+Failed to load resource...
+Important
+
+Si tu vois seulement :
+
+Failed to load resource: 404
+favicon.ico
+
+➡️ ce n'est pas ça qui bloque le showroom.
+
+📸 Envoie-moi une capture de toute la Console après avoir cliqué sur Showroom 3D, même s'il y a plusieurs lignes.
+
+Je vais repérer l'erreur exacte et te donner le correctif à copier-coller, sans toucher aux systèmes Stock, Marché, Atelier et Ventes qui fonctionnent déjà. 🚗🏢🔥
+
+je ne peux pas prendre la conssole en captire d'ecran
+
+Aucun souci 👍 On n’a pas besoin de capture d’écran.
+
+Et maintenant que je vois que le 404 concerne favicon.ico, on peut l’ignorer : ce n’est pas ce qui bloque le showroom.
+
+Le plus simple est de corriger directement le système de chargement Three.js plutôt que de te faire chercher dans la console.
+
+Fais ceci
+
+Dans ton main.js, cherche la partie du Showroom qui contient :
+
+https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.min.js
+
+et envoie-moi ce morceau de ton main.js.
+
+👉 Tu peux aussi faire encore plus simple : envoie-moi ton fichier main.js actuel ici.
+
+Je vais alors te renvoyer une version corrigée qui :
+
+✅ charge Three.js correctement ;
+✅ affiche réellement les voitures présentes dans ton stock ;
+✅ ne reste plus bloquée sur « Chargement du showroom » ;
+✅ garde Stock, Marché, Atelier et Ventes intacts ;
+✅ affiche un showroom 3D même si aucun modèle .glb n'est encore installé.
+
+Pas besoin de capture de console. 🚗🏢
+
+Texte collé(2).txt
+Document
+
+Oui ! 👍 J’ai vérifié ton main.js actuel. Et là, on a trouvé le vrai problème.
+
+Ton fichier est bien en V5 Stock + Marché + Atelier + Ventes, et il se termine par l’initialisation générale du jeu.
+
+👉 Il n’y a actuellement aucun code Showroom 3D dans ce main.js.
+
+Donc c'est normal que ton écran reste sur :
+
+« Chargement du showroom… Initialisation du moteur 3D »
+
+Le HTML du showroom est présent, mais le JavaScript qui doit créer la scène 3D n'est pas présent.
+
+🔧 On va le réparer
+
+Ne supprime rien de ton main.js.
+
+Va tout en bas du fichier, après :
+
+console.log(
+    "ZENTRO DEALERSHIP V5 — système chargé."
+);
+
+et colle tout ce bloc à la suite :
+
 /* =========================================================
-   ZENTRO DEALERSHIP
-   V5 — STOCK + MARCHÉ + ATELIER + VENTES + SHOWROOM 3D
-========================================================= */
+   SHOWROOM 3D V1
+   ========================================================= */
 
-let money = Number(localStorage.getItem("zentro_money")) || 250000;
+let showroomScene = null;
+let showroomCamera = null;
+let showroomRenderer = null;
+let showroomAnimation = null;
+let showroomCars = [];
+let showroomRaycaster = null;
+let showroomMouse = null;
+let showroomReady = false;
 
-let inventory = JSON.parse(
-    localStorage.getItem("zentro_inventory") || "null"
-) || [
-    {
-        id: 1,
-        name: "BMW M4 Competition 2025",
-        km: 18420,
-        price: 94900,
-        category: "Sportive",
-        condition: 100,
-        performance: 0,
-        detailing: 0
-    },
-    {
-        id: 2,
-        name: "Audi RS6 Avant 2025",
-        km: 9820,
-        price: 128500,
-        category: "Premium",
-        condition: 100,
-        performance: 0,
-        detailing: 0
-    },
-    {
-        id: 3,
-        name: "Mercedes-AMG C63 S E Performance 2024",
-        km: 24100,
-        price: 89900,
-        category: "Sportive",
-        condition: 100,
-        performance: 0,
-        detailing: 0
+let showroomYaw = 0;
+let showroomPitch = 0.35;
+let showroomDistance = 15;
+
+let showroomDragging = false;
+let showroomLastX = 0;
+let showroomLastY = 0;
+
+
+/* =========================================================
+   CHARGEMENT THREE.JS
+   ========================================================= */
+
+function loadThreeJS(callback) {
+
+    if (window.THREE) {
+        callback();
+        return;
     }
-];
 
-let reputation =
-    Number(localStorage.getItem("zentro_reputation")) || 4.8;
+    const script = document.createElement("script");
 
+    script.src =
+        "https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.min.js";
 
-/* =========================================================
-   OUTILS
-========================================================= */
+    script.onload = () => {
+        console.log("Three.js chargé.");
+        callback();
+    };
 
-function formatMoney(value) {
-    return new Intl.NumberFormat("fr-FR", {
-        style: "currency",
-        currency: "EUR",
-        maximumFractionDigits: 0
-    }).format(value);
+    script.onerror = () => {
+
+        console.error("Impossible de charger Three.js.");
+
+        const loading =
+            document.getElementById("showroomLoading");
+
+        if (loading) {
+            loading.innerHTML = `
+                <div class="showroom-error">
+                    <div class="showroom-error-box">
+                        <strong>Impossible de charger le moteur 3D</strong>
+                        <span>Vérifiez votre connexion puis rechargez la page.</span>
+                    </div>
+                </div>
+            `;
+        }
+    };
+
+    document.head.appendChild(script);
 }
 
-function saveGame() {
-    localStorage.setItem(
-        "zentro_money",
-        String(money)
-    );
 
-    localStorage.setItem(
-        "zentro_inventory",
-        JSON.stringify(inventory)
-    );
+/* =========================================================
+   OUVERTURE DU SHOWROOM
+   ========================================================= */
 
-    localStorage.setItem(
-        "zentro_reputation",
-        String(reputation)
-    );
-}
+function openShowroom() {
 
-function showToast(message, type = "success") {
+    openPage("showroom");
 
-    let toast =
-        document.querySelector(".zentro-toast");
+    const loading =
+        document.getElementById("showroomLoading");
 
-    if (!toast) {
-
-        toast = document.createElement("div");
-
-        toast.className = "zentro-toast";
-
-        document.body.appendChild(toast);
+    if (loading) {
+        loading.classList.remove("hidden");
     }
 
-    toast.textContent = message;
-
-    toast.className =
-        "zentro-toast " + type;
-
-    requestAnimationFrame(() => {
-        toast.classList.add("show");
+    loadThreeJS(() => {
+        initializeShowroom();
     });
-
-    clearTimeout(toast._timer);
-
-    toast._timer = setTimeout(() => {
-        toast.classList.remove("show");
-    }, 2800);
 }
 
 
 /* =========================================================
-   INTERFACE
-========================================================= */
+   INITIALISATION
+   ========================================================= */
 
-const pageTitles = {
-    dashboard: "Dashboard",
-    stock: "Stock",
-    market: "Marché",
-    workshop: "Atelier",
-    sales: "Ventes",
-    showroom: "Showroom 3D",
-    analytics: "Analytics",
-    settings: "Paramètres"
-};
+function initializeShowroom() {
 
-function updateUI() {
+    const container =
+        document.getElementById("showroom3D");
 
-    const moneyElements =
-        document.querySelectorAll(
-            "[data-money]"
-        );
-
-    moneyElements.forEach(element => {
-        element.textContent =
-            formatMoney(money);
-    });
-
-    const stockCount =
-        document.querySelector(
-            "[data-stock-count]"
-        );
-
-    if (stockCount) {
-        stockCount.textContent =
-            inventory.length;
+    if (!container) {
+        console.error("Conteneur #showroom3D introuvable.");
+        return;
     }
 
-    const reputationElement =
-        document.querySelector(
-            "[data-reputation]"
-        );
+    if (showroomReady) {
+        resizeShowroom();
 
-    if (reputationElement) {
-        reputationElement.textContent =
-            reputation.toFixed(1);
+        const loading =
+            document.getElementById("showroomLoading");
+
+        if (loading) {
+            loading.classList.add("hidden");
+        }
+
+        return;
     }
+
+    createShowroom(container);
+
+    showroomReady = true;
+
+    const loading =
+        document.getElementById("showroomLoading");
+
+    if (loading) {
+        loading.classList.add("hidden");
+    }
+
+    animateShowroom();
+
+    console.log("Showroom 3D initialisé.");
 }
 
-function openPage(page) {
 
-    document
-        .querySelectorAll(".page")
-        .forEach(section => {
+/* =========================================================
+   CRÉATION DE LA SCÈNE
+   ========================================================= */
 
-            section.classList.remove("active");
+function createShowroom(container) {
+
+    const THREE = window.THREE;
+
+    showroomScene =
+        new THREE.Scene();
+
+    showroomScene.background =
+        new THREE.Color(0x07090d);
+
+
+    /* CAMÉRA */
+
+    showroomCamera =
+        new THREE.PerspectiveCamera(
+            45,
+            container.clientWidth /
+            Math.max(container.clientHeight, 1),
+            0.1,
+            1000
+        );
+
+
+    /* RENDERER */
+
+    showroomRenderer =
+        new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: false
         });
+
+    showroomRenderer.setPixelRatio(
+        Math.min(window.devicePixelRatio, 2)
+    );
+
+    showroomRenderer.setSize(
+        container.clientWidth,
+        container.clientHeight
+    );
+
+    showroomRenderer.shadowMap.enabled = true;
+
+    showroomRenderer.shadowMap.type =
+        THREE.PCFSoftShadowMap;
+
+    container.innerHTML = "";
+
+    container.appendChild(
+        showroomRenderer.domElement
+    );
+
+
+    /* LUMIÈRES */
+
+    const ambientLight =
+        new THREE.AmbientLight(
+            0xffffff,
+            1.8
+        );
+
+    showroomScene.add(ambientLight);
+
+
+    const keyLight =
+        new THREE.DirectionalLight(
+            0xffffff,
+            3
+        );
+
+    keyLight.position.set(
+        8,
+        12,
+        8
+    );
+
+    keyLight.castShadow = true;
+
+    showroomScene.add(keyLight);
+
+
+    const fillLight =
+        new THREE.DirectionalLight(
+            0x8ab4ff,
+            1.5
+        );
+
+    fillLight.position.set(
+        -8,
+        5,
+        4
+    );
+
+    showroomScene.add(fillLight);
+
+
+    const rearLight =
+        new THREE.PointLight(
+            0x00aaff,
+            18,
+            25
+        );
+
+    rearLight.position.set(
+        0,
+        5,
+        -8
+    );
+
+    showroomScene.add(rearLight);
+
+
+    /* SOL */
+
+    const floor =
+        new THREE.Mesh(
+            new THREE.PlaneGeometry(
+                50,
+                50
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x15181e,
+                roughness: 0.28,
+                metalness: 0.35
+            })
+        );
+
+    floor.rotation.x =
+        -Math.PI / 2;
+
+    floor.receiveShadow = true;
+
+    showroomScene.add(floor);
+
+
+    /* MURS */
+
+    createShowroomWall(
+        0,
+        5,
+        -12,
+        32,
+        10,
+        0.4
+    );
+
+    createShowroomWall(
+        -16,
+        5,
+        0,
+        0.4,
+        10,
+        24
+    );
+
+    createShowroomWall(
+        16,
+        5,
+        0,
+        0.4,
+        10,
+        24
+    );
+
+
+    /* PLATEFORME CENTRALE */
+
+    const platform =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                5.5,
+                5.5,
+                0.35,
+                64
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x20252d,
+                metalness: 0.7,
+                roughness: 0.22
+            })
+        );
+
+    platform.position.y =
+        0.18;
+
+    platform.receiveShadow = true;
+
+    platform.castShadow = true;
+
+    showroomScene.add(platform);
+
+
+    /* LIGNE LUMINEUSE */
+
+    const ring =
+        new THREE.Mesh(
+            new THREE.TorusGeometry(
+                5.15,
+                0.045,
+                12,
+                96
+            ),
+            new THREE.MeshBasicMaterial({
+                color: 0x00aaff
+            })
+        );
+
+    ring.rotation.x =
+        Math.PI / 2;
+
+    ring.position.y =
+        0.38;
+
+    showroomScene.add(ring);
+
+
+    /* VOITURES */
+
+    createShowroomCars();
+
+
+    /* RAYCASTING */
+
+    showroomRaycaster =
+        new THREE.Raycaster();
+
+    showroomMouse =
+        new THREE.Vector2();
+
+
+    setupShowroomControls();
+
+    updateShowroomCamera();
+
+    window.addEventListener(
+        "resize",
+        resizeShowroom
+    );
+}
+
+
+/* =========================================================
+   MURS
+   ========================================================= */
+
+function createShowroomWall(
+    x,
+    y,
+    z,
+    width,
+    height,
+    depth
+) {
+
+    const THREE = window.THREE;
+
+    const wall =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                width,
+                height,
+                depth
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x101319,
+                roughness: 0.55,
+                metalness: 0.25
+            })
+        );
+
+    wall.position.set(
+        x,
+        y,
+        z
+    );
+
+    wall.receiveShadow = true;
+
+    wall.castShadow = true;
+
+    showroomScene.add(wall);
+}
+
+
+/* =========================================================
+   CRÉATION DES VOITURES
+   ========================================================= */
+
+function createShowroomCars() {
+
+    showroomCars = [];
+
+    const cars =
+        inventory.slice(0, 6);
+
+    if (cars.length === 0) {
+        return;
+    }
+
+    const positions = [
+        [-6, 0, 0],
+        [0, 0, -1],
+        [6, 0, 0],
+        [-3, 0, 6],
+        [3, 0, 6],
+        [0, 0, 9]
+    ];
+
+    cars.forEach((car, index) => {
+
+        const position =
+            positions[index];
+
+        const vehicle =
+            createPlaceholderCar(
+                car,
+                position[0],
+                position[1],
+                position[2]
+            );
+
+        showroomScene.add(vehicle);
+
+        showroomCars.push({
+            object: vehicle,
+            car: car
+        });
+    });
+}
+
+
+/* =========================================================
+   MODÈLE 3D PROVISOIRE
+   ========================================================= */
+
+function createPlaceholderCar(
+    car,
+    x,
+    y,
+    z
+) {
+
+    const THREE = window.THREE;
+
+    const group =
+        new THREE.Group();
+
+    group.userData.carId =
+        car.id;
+
+
+    const color =
+        getCarColor(
+            getCarName(car)
+        );
+
+
+    /* CARROSSERIE */
+
+    const body =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                3.8,
+                0.65,
+                1.75
+            ),
+            new THREE.MeshStandardMaterial({
+                color: color,
+                metalness: 0.75,
+                roughness: 0.2
+            })
+        );
+
+    body.position.y =
+        0.85;
+
+    body.castShadow = true;
+
+    body.receiveShadow = true;
+
+    group.add(body);
+
+
+    /* TOIT / HABITACLE */
+
+    const cabin =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                2.0,
+                0.65,
+                1.45
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x10141a,
+                metalness: 0.2,
+                roughness: 0.15
+            })
+        );
+
+    cabin.position.set(
+        0.25,
+        1.42,
+        0
+    );
+
+    cabin.castShadow = true;
+
+    group.add(cabin);
+
+
+    /* VITRES */
+
+    const windows =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                1.65,
+                0.42,
+                1.48
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x07121c,
+                transparent: true,
+                opacity: 0.8,
+                metalness: 0.1,
+                roughness: 0.05
+            })
+        );
+
+    windows.position.set(
+        0.25,
+        1.48,
+        0
+    );
+
+    group.add(windows);
+
+
+    /* ROUES */
+
+    const wheelGeometry =
+        new THREE.CylinderGeometry(
+            0.43,
+            0.43,
+            0.28,
+            24
+        );
+
+    const wheelMaterial =
+        new THREE.MeshStandardMaterial({
+            color: 0x050505,
+            metalness: 0.7,
+            roughness: 0.3
+        });
+
+
+    [
+        [-1.25, 0.45, -0.92],
+        [1.25, 0.45, -0.92],
+        [-1.25, 0.45, 0.92],
+        [1.25, 0.45, 0.92]
+    ].forEach(position => {
+
+        const wheel =
+            new THREE.Mesh(
+                wheelGeometry,
+                wheelMaterial
+            );
+
+        wheel.rotation.z =
+            Math.PI / 2;
+
+        wheel.position.set(
+            position[0],
+            position[1],
+            position[2]
+        );
+
+        wheel.castShadow = true;
+
+        group.add(wheel);
+    });
+
+
+    /* PHARES */
+
+    const headlightMaterial =
+        new THREE.MeshBasicMaterial({
+            color: 0xffffff
+        });
+
+
+    [-0.75, 0.75].forEach(offset => {
+
+        const light =
+            new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    0.35,
+                    0.16,
+                    0.08
+                ),
+                headlightMaterial
+            );
+
+        light.position.set(
+            1.92,
+            0.95,
+            offset
+        );
+
+        group.add(light);
+    });
+
+
+    group.position.set(
+        x,
+        y,
+        z
+    );
+
+    group.userData.car =
+        car;
+
+    return group;
+}
+
+
+/* =========================================================
+   COULEURS
+   ========================================================= */
+
+function getCarColor(name) {
+
+    const text =
+        String(name).toLowerCase();
+
+    if (text.includes("bmw")) {
+        return 0x182a45;
+    }
+
+    if (text.includes("audi")) {
+        return 0x25282d;
+    }
+
+    if (text.includes("mercedes")) {
+        return 0x30343b;
+    }
+
+    if (text.includes("porsche")) {
+        return 0x7d1111;
+    }
+
+    return 0x20252b;
+}
+
+
+/* =========================================================
+   CAMÉRA
+   ========================================================= */
+
+function updateShowroomCamera() {
+
+    if (
+        !showroomCamera ||
+        !showroomScene
+    ) {
+        return;
+    }
+
+    const THREE =
+        window.THREE;
 
     const target =
-        document.getElementById(page);
-
-    if (target) {
-        target.classList.add("active");
-    }
-
-    document
-        .querySelectorAll(".nav-btn")
-        .forEach(button => {
-
-            button.classList.toggle(
-                "active",
-                button.dataset.page === page
-            );
-        });
-
-    const title =
-        document.querySelector(
-            ".topbar-title"
+        new THREE.Vector3(
+            0,
+            1,
+            2
         );
 
-    if (title) {
-        title.textContent =
-            pageTitles[page] || page;
-    }
+    const yaw =
+        showroomYaw;
 
-    if (page === "stock") {
-        renderInventory();
-    }
+    const pitch =
+        showroomPitch;
 
-    if (page === "market") {
-        renderMarket();
-    }
+    showroomCamera.position.set(
+        Math.sin(yaw) *
+            Math.cos(pitch) *
+            showroomDistance,
 
-    if (page === "workshop") {
-        renderWorkshop();
-    }
+        Math.sin(pitch) *
+            showroomDistance + 2,
 
-    if (page === "sales") {
-        renderSales();
-    }
+        Math.cos(yaw) *
+            Math.cos(pitch) *
+            showroomDistance
+    );
 
-    if (page === "showroom") {
-
-        setTimeout(() => {
-
-            if (
-                typeof openShowroom ===
-                "function"
-            ) {
-                openShowroom();
-            }
-
-        }, 50);
-    }
-
-    updateUI();
+    showroomCamera.lookAt(
+        target
+    );
 }
 
 
 /* =========================================================
-   NAVIGATION
-========================================================= */
+   CONTRÔLES
+   ========================================================= */
+
+function setupShowroomControls() {
+
+    const canvas =
+        showroomRenderer.domElement;
+
+
+    canvas.addEventListener(
+        "mousedown",
+        event => {
+
+            showroomDragging = true;
+
+            showroomLastX =
+                event.clientX;
+
+            showroomLastY =
+                event.clientY;
+        }
+    );
+
+
+    window.addEventListener(
+        "mouseup",
+        () => {
+
+            showroomDragging = false;
+        }
+    );
+
+
+    window.addEventListener(
+        "mousemove",
+        event => {
+
+            if (!showroomDragging) {
+                return;
+            }
+
+            const dx =
+                event.clientX -
+                showroomLastX;
+
+            const dy =
+                event.clientY -
+                showroomLastY;
+
+            showroomLastX =
+                event.clientX;
+
+            showroomLastY =
+                event.clientY;
+
+            showroomYaw -=
+                dx * 0.006;
+
+            showroomPitch +=
+                dy * 0.004;
+
+            showroomPitch =
+                Math.max(
+                    0.05,
+                    Math.min(
+                        1.1,
+                        showroomPitch
+                    )
+                );
+
+            updateShowroomCamera();
+        }
+    );
+
+
+    canvas.addEventListener(
+        "wheel",
+        event => {
+
+            event.preventDefault();
+
+            showroomDistance +=
+                event.deltaY * 0.01;
+
+            showroomDistance =
+                Math.max(
+                    7,
+                    Math.min(
+                        30,
+                        showroomDistance
+                    )
+                );
+
+            updateShowroomCamera();
+        },
+        { passive: false }
+    );
+
+
+    canvas.addEventListener(
+        "click",
+        event => {
+
+            const rect =
+                canvas.getBoundingClientRect();
+
+            showroomMouse.x =
+                ((event.clientX - rect.left) /
+                    rect.width) * 2 - 1;
+
+            showroomMouse.y =
+                -((event.clientY - rect.top) /
+                    rect.height) * 2 + 1;
+
+
+            showroomRaycaster.setFromCamera(
+                showroomMouse,
+                showroomCamera
+            );
+
+
+            const objects = [];
+
+            showroomCars.forEach(item => {
+
+                item.object.traverse(
+                    child => {
+
+                        if (child.isMesh) {
+                            objects.push(child);
+                        }
+                    }
+                );
+            });
+
+
+            const intersections =
+                showroomRaycaster.intersectObjects(
+                    objects,
+                    false
+                );
+
+
+            if (
+                intersections.length === 0
+            ) {
+                return;
+            }
+
+
+            let selected =
+                intersections[0].object;
+
+
+            while (
+                selected &&
+                !selected.userData.car
+            ) {
+                selected =
+                    selected.parent;
+            }
+
+
+            if (
+                selected &&
+                selected.userData.car
+            ) {
+
+                showShowroomInfo(
+                    selected.userData.car
+                );
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   INFOS VÉHICULE
+   ========================================================= */
+
+function showShowroomInfo(car) {
+
+    const info =
+        document.getElementById(
+            "showroomInfo"
+        );
+
+    if (!info) return;
+
+
+    info.innerHTML = `
+
+        <span class="showroom-info-label">
+            VÉHICULE SÉLECTIONNÉ
+        </span>
+
+        <h3>
+            ${getCarName(car)}
+        </h3>
+
+        <div class="showroom-info-price">
+            ${formatMoney(car.price)}
+        </div>
+
+        <div class="showroom-info-stats">
+
+            <div class="showroom-info-stat">
+                <span>KILOMÉTRAGE</span>
+                <strong>
+                    ${car.km.toLocaleString("fr-FR")} km
+                </strong>
+            </div>
+
+            <div class="showroom-info-stat">
+                <span>ÉTAT</span>
+                <strong>
+                    ${Math.round(car.condition)}%
+                </strong>
+            </div>
+
+            <div class="showroom-info-stat">
+                <span>PERFORMANCE</span>
+                <strong>
+                    +${car.performance}%
+                </strong>
+            </div>
+
+            <div class="showroom-info-stat">
+                <span>DETAILING</span>
+                <strong>
+                    ${car.detailing}%
+                </strong>
+            </div>
+
+        </div>
+    `;
+}
+
+
+/* =========================================================
+   REDIMENSIONNEMENT
+   ========================================================= */
+
+function resizeShowroom() {
+
+    const container =
+        document.getElementById(
+            "showroom3D"
+        );
+
+    if (
+        !container ||
+        !showroomCamera ||
+        !showroomRenderer
+    ) {
+        return;
+    }
+
+
+    const width =
+        container.clientWidth;
+
+    const height =
+        Math.max(
+            container.clientHeight,
+            400
+        );
+
+
+    showroomCamera.aspect =
+        width / height;
+
+    showroomCamera.updateProjectionMatrix();
+
+
+    showroomRenderer.setSize(
+        width,
+        height
+    );
+}
+
+
+/* =========================================================
+   ANIMATION
+   ========================================================= */
+
+function animateShowroom() {
+
+    showroomAnimation =
+        requestAnimationFrame(
+            animateShowroom
+        );
+
+
+    if (
+        !showroomRenderer ||
+        !showroomScene ||
+        !showroomCamera
+    ) {
+        return;
+    }
+
+
+    showroomRenderer.render(
+        showroomScene,
+        showroomCamera
+    );
+}
+
+
+/* =========================================================
+   BOUTON SHOWROOM
+   ========================================================= */
 
 document
-    .querySelectorAll(".nav-btn")
+    .querySelectorAll(
+        '.nav-btn[data-page="showroom"]'
+    )
     .forEach(button => {
 
         button.addEventListener(
             "click",
             () => {
 
-                const page =
-                    button.dataset.page;
+                openShowroom();
 
-                if (!page) return;
-
-                openPage(page);
             }
         );
+
     });
 
 
 /* =========================================================
-   STOCK
-========================================================= */
+   FIN SHOWROOM
+   ========================================================= */
+⚠️ Une chose importante
 
-function renderInventory() {
+Ton main.js actuel contient bien les données de tes 3 voitures de stock :
 
-    const grid =
-        document.querySelector(
-            "#stock .inventory-grid"
-        );
+BMW M4 Competition 2025
+Audi RS6 Avant 2025
+Mercedes-AMG C63 S E Performance 2024
 
-    if (!grid) return;
+Elles sont définies dans ton inventaire au début du fichier.
 
-    grid.innerHTML = "";
+Donc après avoir ajouté ce bloc, le showroom pourra automatiquement récupérer ces voitures depuis inventory.
 
-    if (inventory.length === 0) {
+Ensuite
 
-        grid.innerHTML = `
-            <div class="empty-state">
-                <strong>Stock vide</strong>
-                <span>
-                    Achetez des véhicules
-                    depuis le marché.
-                </span>
-            </div>
-        `;
+Fais :
 
-        return;
-    }
+GitHub → main.js → colle le bloc tout en bas → Commit changes
 
-    inventory.forEach(car => {
+Puis recharge ton site avec :
 
-        const card =
-            document.createElement("div");
+Ctrl + F5
 
-        card.className =
-            "inventory-card";
+et clique sur :
 
-        const condition =
-            car.condition ?? 100;
+🏢 Showroom 3D
 
-        const performance =
-            car.performance ?? 0;
+Tu devrais cette fois voir la scène 3D, avec tes voitures disposées dans le showroom. 🚗✨
 
-        const detailing =
-            car.detailing ?? 0;
+Et surtout : ne touche pas à ton Stock, Marché, Atelier ou Ventes. On ajoute seulement le Showroom au-dessus de ton V5 actuel.
 
-        card.innerHTML = `
-            <div class="inventory-card-top">
-                <span class="vehicle-category">
-                    ${car.category}
-                </span>
+🔥 Voici la PARTIE 3/3.
+Colle-la directement à la suite de la partie 2.
 
-                <span class="vehicle-condition">
-                    ${condition}%
-                </span>
-            </div>
-
-            <h3>${car.name}</h3>
-
-            <div class="inventory-specs">
-
-                <span>
-                    <small>KILOMÉTRAGE</small>
-                    ${car.km.toLocaleString("fr-FR")} km
-                </span>
-
-                <span>
-                    <small>VALEUR</small>
-                    ${formatMoney(car.price)}
-                </span>
-
-                <span>
-                    <small>PERFORMANCE</small>
-                    +${performance}%
-                </span>
-
-            </div>
-
-            <div class="inventory-progress">
-
-                <div>
-                    <span>État</span>
-                    <strong>${condition}%</strong>
-                </div>
-
-                <div class="progress-bar">
-                    <span style="width:${condition}%"></span>
-                </div>
-
-            </div>
-
-            <div class="inventory-actions">
-
-                <button
-                    class="secondary-btn"
-                    onclick="openWorkshopForCar(${car.id})"
-                >
-                    🔧 Atelier
-                </button>
-
-                <button
-                    class="danger-btn"
-                    onclick="sellCar(${car.id})"
-                >
-                    Vendre
-                </button>
-
-            </div>
-        `;
-
-        grid.appendChild(card);
-    });
-}
-
-
-function openWorkshopForCar(id) {
-
-    openPage("workshop");
-
-    setTimeout(() => {
-
-        if (
-            typeof selectWorkshopCar ===
-            "function"
-        ) {
-            selectWorkshopCar(id);
-        }
-
-    }, 50);
-}
-
-
-function sellCar(id) {
-
-    const index =
-        inventory.findIndex(
-            car => car.id === id
-        );
-
-    if (index === -1) return;
-
-    const car = inventory[index];
-
-    const multiplier =
-        0.95 +
-        Math.random() * 0.10;
-
-    const salePrice =
-        Math.round(
-            car.price * multiplier
-        );
-
-    money += salePrice;
-
-    inventory.splice(index, 1);
-
-    reputation = Math.min(
-        5,
-        reputation + 0.02
-    );
-
-    saveGame();
-    updateUI();
-    renderInventory();
-
-    showToast(
-        `${car.name} vendu pour ${formatMoney(salePrice)}.`
-    );
-}
-
-
-/* =========================================================
-   MARCHÉ
-========================================================= */
-
-const marketCars = [
-
-    {
-        id: 101,
-        name: "BMW M3 Competition 2025",
-        km: 8200,
-        price: 91500,
-        category: "Sportive"
-    },
-
-    {
-        id: 102,
-        name: "BMW M5 2025",
-        km: 6100,
-        price: 124900,
-        category: "Sportive"
-    },
-
-    {
-        id: 103,
-        name: "Audi RS5 2025",
-        km: 12400,
-        price: 84900,
-        category: "Sportive"
-    },
-
-    {
-        id: 104,
-        name: "Audi RS7 2025",
-        km: 7600,
-        price: 119900,
-        category: "Premium"
-    },
-
-    {
-        id: 105,
-        name: "Mercedes-AMG C43 AMG 2025",
-        km: 10400,
-        price: 72500,
-        category: "Sportive"
-    },
-
-    {
-        id: 106,
-        name: "Porsche 911 Carrera 2025",
-        km: 5400,
-        price: 139900,
-        category: "Sportive"
-    }
-
-];
-
-
-function buyCar(car) {
-
-    if (money < car.price) {
-
-        showToast(
-            "Fonds insuffisants pour acheter ce véhicule.",
-            "error"
-        );
-
-        return;
-    }
-
-    money -= car.price;
-
-    inventory.push({
-
-        id:
-            Date.now() +
-            Math.floor(
-                Math.random() * 1000
-            ),
-
-        name: car.name,
-
-        km: car.km,
-
-        price: car.price,
-
-        category: car.category,
-
-        condition: 100,
-
-        performance: 0,
-
-        detailing: 0
-
-    });
-
-    saveGame();
-
-    updateUI();
-
-    renderInventory();
-
-    showToast(
-        `${car.name} ajouté à votre stock.`
-    );
-}
-
-
-function renderMarket() {
-
-    const page =
-        document.getElementById("market");
-
-    if (!page) return;
-
-    let container =
-        page.querySelector(".market-cars");
-
-    if (!container) {
-
-        container =
-            document.createElement("div");
-
-        container.className =
-            "market-cars";
-
-        const panel =
-            page.querySelector(
-                ".market-panel"
-            );
-
-        if (panel) {
-            panel.after(container);
-        } else {
-            page.appendChild(container);
-        }
-    }
-
-    container.innerHTML = "";
-
-    marketCars.forEach(car => {
-
-        const card =
-            document.createElement("div");
-
-        card.className =
-            "market-car-card";
-
-        card.innerHTML = `
-
-            <div class="market-car-image">
-                🚘
-            </div>
-
-            <div class="market-car-content">
-
-                <span class="vehicle-category">
-                    ${car.category}
-                </span>
-
-                <h3>${car.name}</h3>
-
-                <div class="market-car-specs">
-
-                    <span>
-                        ${car.km.toLocaleString("fr-FR")} km
-                    </span>
-
-                    <strong>
-                        ${formatMoney(car.price)}
-                    </strong>
-
-                </div>
-
-                <button
-                    class="primary-btn"
-                    data-buy-id="${car.id}"
-                >
-                    Acheter
-                </button>
-
-            </div>
-        `;
-
-        const button =
-            card.querySelector(
-                "[data-buy-id]"
-            );
-
-        button.addEventListener(
-            "click",
-            () => buyCar(car)
-        );
-
-        container.appendChild(card);
-    });
-}
-
-
-/* =========================================================
-   ATELIER — PRÉPARATION
-========================================================= */
-
-function prepareWorkshopData() {
-
-    inventory.forEach(car => {
-
-        if (
-            typeof car.condition !==
-            "number"
-        ) {
-            car.condition = 100;
-        }
-
-        if (
-            typeof car.performance !==
-            "number"
-        ) {
-            car.performance = 0;
-        }
-
-        if (
-            typeof car.detailing !==
-            "number"
-        ) {
-            car.detailing = 0;
-        }
-    });
-}
-
-
-function repairPrice(car) {
-
-    if (car.condition >= 100) {
-        return 0;
-    }
-
-    return Math.max(
-        500,
-        Math.round(
-            (100 - car.condition) *
-            180
-        )
-    );
-}
-
-
-/* =========================================================
-   FIN PARTIE 1
-========================================================= */
-/* =========================================================
-   ATELIER — RENDU
-========================================================= */
-
-function renderWorkshop() {
-
-    const page =
-        document.getElementById("workshop");
-
-    if (!page) return;
-
-    page.innerHTML = `
-        <div class="workshop-layout">
-
-            <div class="workshop-vehicles">
-
-                <div class="section-heading">
-                    <span>GARAGE</span>
-                    <h2>Vos véhicules</h2>
-                    <p>
-                        Sélectionnez un véhicule
-                        pour accéder aux opérations.
-                    </p>
-                </div>
-
-                <div
-                    id="workshopVehicleList"
-                    class="workshop-vehicle-list"
-                ></div>
-
-            </div>
-
-            <div
-                id="workshopDetails"
-                class="workshop-management"
-            >
-                <div class="workshop-empty">
-                    <div>🔧</div>
-                    <h3>Aucun véhicule sélectionné</h3>
-                    <p>
-                        Sélectionnez un véhicule
-                        dans votre stock.
-                    </p>
-                </div>
-            </div>
-
-        </div>
-    `;
-
-    renderWorkshopVehicles();
-}
-
-
-function renderWorkshopVehicles() {
-
-    const list =
-        document.getElementById(
-            "workshopVehicleList"
-        );
-
-    if (!list) return;
-
-    list.innerHTML = "";
-
-    if (inventory.length === 0) {
-
-        list.innerHTML = `
-            <div class="workshop-empty">
-                <h3>Garage vide</h3>
-                <p>
-                    Achetez un véhicule
-                    sur le marché.
-                </p>
-            </div>
-        `;
-
-        return;
-    }
-
-    inventory.forEach(car => {
-
-        const condition =
-            car.condition ?? 100;
-
-        const item =
-            document.createElement("button");
-
-        item.className =
-            "workshop-vehicle";
-
-        item.dataset.id = car.id;
-
-        item.innerHTML = `
-
-            <div class="workshop-vehicle-icon">
-                🚘
-            </div>
-
-            <div class="workshop-vehicle-info">
-
-                <strong>${car.name}</strong>
-
-                <span>
-                    ${car.km.toLocaleString("fr-FR")} km
-                </span>
-
-                <div class="workshop-condition">
-
-                    <span>
-                        État ${condition}%
-                    </span>
-
-                    <div class="progress-bar">
-                        <span
-                            style="width:${condition}%"
-                        ></span>
-                    </div>
-
-                </div>
-
-            </div>
-
-        `;
-
-        item.addEventListener(
-            "click",
-            () => selectWorkshopCar(car.id)
-        );
-
-        list.appendChild(item);
-    });
-}
-
-
-function selectWorkshopCar(id) {
-
-    const car =
-        inventory.find(
-            vehicle => vehicle.id === id
-        );
-
-    if (!car) return;
-
-    const details =
-        document.getElementById(
-            "workshopDetails"
-        );
-
-    if (!details) return;
-
-    const condition =
-        car.condition ?? 100;
-
-    const performance =
-        car.performance ?? 0;
-
-    const detailing =
-        car.detailing ?? 0;
-
-    const repairCost =
-        repairPrice(car);
-
-    details.innerHTML = `
-
-        <div class="workshop-detail-header">
-
-            <span>VÉHICULE SÉLECTIONNÉ</span>
-
-            <h2>${car.name}</h2>
-
-            <p>
-                ${car.category}
-                ·
-                ${car.km.toLocaleString("fr-FR")} km
-            </p>
-
-        </div>
-
-        <div class="workshop-stat-grid">
-
-            <div class="workshop-stat">
-
-                <span>ÉTAT</span>
-
-                <strong>
-                    ${condition}%
-                </strong>
-
-                <div class="progress-bar">
-                    <span
-                        style="width:${condition}%"
-                    ></span>
-                </div>
-
-            </div>
-
-            <div class="workshop-stat">
-
-                <span>PERFORMANCE</span>
-
-                <strong>
-                    +${performance}%
-                </strong>
-
-                <div class="progress-bar">
-                    <span
-                        style="width:${Math.min(
-                            performance * 4,
-                            100
-                        )}%"
-                    ></span>
-                </div>
-
-            </div>
-
-            <div class="workshop-stat">
-
-                <span>DETAILING</span>
-
-                <strong>
-                    ${detailing}%
-                </strong>
-
-                <div class="progress-bar">
-                    <span
-                        style="width:${detailing}%"
-                    ></span>
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="workshop-value">
-
-            <span>VALEUR ACTUELLE</span>
-
-            <strong>
-                ${formatMoney(car.price)}
-            </strong>
-
-        </div>
-
-        <div class="workshop-actions">
-
-            <div class="workshop-action">
-
-                <div>
-                    <strong>🔧 Révision & réparation</strong>
-
-                    <span>
-                        Remettre le véhicule
-                        en parfait état.
-                    </span>
-                </div>
-
-                <button
-                    class="primary-btn"
-                    onclick="repairVehicle(${car.id})"
-                    ${condition >= 100 ? "disabled" : ""}
-                >
-                    ${
-                        condition >= 100
-                            ? "Déjà parfait"
-                            : formatMoney(repairCost)
-                    }
-                </button>
-
-            </div>
-
-
-            <div class="workshop-action">
-
-                <div>
-                    <strong>⚙️ Préparation performance</strong>
-
-                    <span>
-                        Améliore les performances
-                        et la valeur du véhicule.
-                    </span>
-                </div>
-
-                <button
-                    class="primary-btn"
-                    onclick="upgradeVehicle(${car.id})"
-                    ${performance >= 25 ? "disabled" : ""}
-                >
-                    ${performance >= 25
-                        ? "MAX"
-                        : "7 500 €"}
-                </button>
-
-            </div>
-
-
-            <div class="workshop-action">
-
-                <div>
-                    <strong>✨ Detailing premium</strong>
-
-                    <span>
-                        Nettoyage et finition
-                        haut de gamme.
-                    </span>
-                </div>
-
-                <button
-                    class="primary-btn"
-                    onclick="detailVehicle(${car.id})"
-                    ${detailing >= 100 ? "disabled" : ""}
-                >
-                    ${detailing >= 100
-                        ? "MAX"
-                        : "2 500 €"}
-                </button>
-
-            </div>
-
-        </div>
-
-    `;
-
-    document
-        .querySelectorAll(
-            ".workshop-vehicle"
-        )
-        .forEach(button => {
-
-            button.classList.toggle(
-                "selected",
-                Number(button.dataset.id) === id
-            );
-
-        });
-}
-
-
-/* =========================================================
-   ATELIER — RÉPARATION
-========================================================= */
-
-function repairVehicle(id) {
-
-    const car =
-        inventory.find(
-            vehicle => vehicle.id === id
-        );
-
-    if (!car) return;
-
-    if (car.condition >= 100) {
-
-        showToast(
-            "Ce véhicule est déjà en parfait état."
-        );
-
-        return;
-    }
-
-    const cost =
-        repairPrice(car);
-
-    if (money < cost) {
-
-        showToast(
-            "Fonds insuffisants pour cette réparation.",
-            "error"
-        );
-
-        return;
-    }
-
-    money -= cost;
-
-    car.condition = 100;
-
-    car.price += Math.round(
-        cost * 0.65
-    );
-
-    saveGame();
-
-    updateUI();
-
-    renderInventory();
-
-    renderWorkshop();
-
-    selectWorkshopCar(id);
-
-    showToast(
-        `${car.name} a été entièrement réparé.`
-    );
-}
-
-
-/* =========================================================
-   ATELIER — PERFORMANCE
-========================================================= */
-
-function upgradeVehicle(id) {
-
-    const car =
-        inventory.find(
-            vehicle => vehicle.id === id
-        );
-
-    if (!car) return;
-
-    const performance =
-        car.performance ?? 0;
-
-    if (performance >= 25) {
-
-        showToast(
-            "La préparation performance est déjà au maximum."
-        );
-
-        return;
-    }
-
-    const cost = 7500;
-
-    if (money < cost) {
-
-        showToast(
-            "Fonds insuffisants pour cette préparation.",
-            "error"
-        );
-
-        return;
-    }
-
-    money -= cost;
-
-    car.performance =
-        Math.min(
-            25,
-            performance + 5
-        );
-
-    car.price += 10000;
-
-    saveGame();
-
-    updateUI();
-
-    renderInventory();
-
-    renderWorkshop();
-
-    selectWorkshopCar(id);
-
-    showToast(
-        `${car.name} a reçu une amélioration performance.`
-    );
-}
-
-
-/* =========================================================
-   ATELIER — DETAILING
-========================================================= */
-
-function detailVehicle(id) {
-
-    const car =
-        inventory.find(
-            vehicle => vehicle.id === id
-        );
-
-    if (!car) return;
-
-    const detailing =
-        car.detailing ?? 0;
-
-    if (detailing >= 100) {
-
-        showToast(
-            "Le detailing est déjà au maximum."
-        );
-
-        return;
-    }
-
-    const cost = 2500;
-
-    if (money < cost) {
-
-        showToast(
-            "Fonds insuffisants pour le detailing.",
-            "error"
-        );
-
-        return;
-    }
-
-    money -= cost;
-
-    car.detailing =
-        Math.min(
-            100,
-            detailing + 25
-        );
-
-    car.price += 3000;
-
-    saveGame();
-
-    updateUI();
-
-    renderInventory();
-
-    renderWorkshop();
-
-    selectWorkshopCar(id);
-
-    showToast(
-        `${car.name} bénéficie maintenant d'un detailing premium.`
-    );
-}
-
-
-/* =========================================================
-   VENTES — DONNÉES
-========================================================= */
-
-let salesHistory =
-    JSON.parse(
-        localStorage.getItem(
-            "zentro_sales_history"
-        ) || "[]"
-    );
-
-
-function saveSalesHistory() {
-
-    localStorage.setItem(
-        "zentro_sales_history",
-        JSON.stringify(
-            salesHistory
-        )
-    );
-}
-
-
-/* =========================================================
-   VENTES — RENDU
-========================================================= */
-
-function renderSales() {
-
-    const page =
-        document.getElementById("sales");
-
-    if (!page) return;
-
-    const soldCount =
-        salesHistory.length;
-
-    const totalRevenue =
-        salesHistory.reduce(
-            (total, sale) =>
-                total +
-                Number(
-                    sale.price || 0
-                ),
-            0
-        );
-
-    const averageSale =
-        soldCount > 0
-            ? totalRevenue / soldCount
-            : 0;
-
-    page.innerHTML = `
-
-        <div class="sales-header">
-
-            <div>
-                <span class="sales-label">
-                    ZENTRO DEALERSHIP
-                </span>
-
-                <h2>
-                    Ventes
-                </h2>
-
-                <p>
-                    Gérez vos transactions
-                    et suivez les performances
-                    de votre concession.
-                </p>
-            </div>
-
-        </div>
-
-
-        <div class="sales-stats">
-
-            <div class="sales-stat-card">
-
-                <span>
-                    VÉHICULES VENDUS
-                </span>
-
-                <strong>
-                    ${soldCount}
-                </strong>
-
-            </div>
-
-
-            <div class="sales-stat-card">
-
-                <span>
-                    CHIFFRE D'AFFAIRES
-                </span>
-
-                <strong>
-                    ${formatMoney(totalRevenue)}
-                </strong>
-
-            </div>
-
-
-            <div class="sales-stat-card">
-
-                <span>
-                    VENTE MOYENNE
-                </span>
-
-                <strong>
-                    ${formatMoney(averageSale)}
-                </strong>
-
-            </div>
-
-
-            <div class="sales-stat-card">
-
-                <span>
-                    RÉPUTATION
-                </span>
-
-                <strong>
-                    ${reputation.toFixed(1)} ★
-                </strong>
-
-            </div>
-
-        </div>
-
-
-        <div class="sales-panel">
-
-            <div class="section-heading">
-
-                <span>
-                    HISTORIQUE
-                </span>
-
-                <h2>
-                    Transactions récentes
-                </h2>
-
-            </div>
-
-            <div
-                class="sales-list"
-                id="salesList"
-            ></div>
-
-        </div>
-
-    `;
-
-    renderSalesHistory();
-}
-
-
-/* =========================================================
-   VENTES — HISTORIQUE
-========================================================= */
-
-function renderSalesHistory() {
-
-    const list =
-        document.getElementById(
-            "salesList"
-        );
-
-    if (!list) return;
-
-    list.innerHTML = "";
-
-    if (salesHistory.length === 0) {
-
-        list.innerHTML = `
-
-            <div class="empty-state">
-
-                <strong>
-                    Aucune vente
-                </strong>
-
-                <span>
-                    Vos futures transactions
-                    apparaîtront ici.
-                </span>
-
-            </div>
-
-        `;
-
-        return;
-    }
-
-    salesHistory
-        .slice()
-        .reverse()
-        .forEach(sale => {
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "sale-row";
-
-            row.innerHTML = `
-
-                <div class="sale-vehicle">
-
-                    <div class="sale-icon">
-                        🚘
-                    </div>
-
-                    <div>
-
-                        <strong>
-                            ${sale.name || "Véhicule"}
-                        </strong>
-
-                        <span>
-                            ${
-                                sale.date ||
-                                "Transaction"
-                            }
-                        </span>
-
-                    </div>
-
-                </div>
-
-
-                <div class="sale-category">
-
-                    ${
-                        sale.category ||
-                        "Automobile"
-                    }
-
-                </div>
-
-
-                <div class="sale-price">
-
-                    <span>
-                        Prix de vente
-                    </span>
-
-                    <strong>
-                        ${formatMoney(
-                            Number(
-                                sale.price || 0
-                            )
-                        )}
-                    </strong>
-
-                </div>
-
-            `;
-
-            list.appendChild(row);
-        });
-}
-
-
-/* =========================================================
-   VENTES — ENREGISTREMENT
-========================================================= */
-
-function registerSale(
-    car,
-    salePrice
-) {
-
-    salesHistory.push({
-
-        name: car.name,
-
-        category:
-            car.category ||
-            "Automobile",
-
-        price:
-            Number(salePrice) || 0,
-
-        km:
-            Number(car.km) || 0,
-
-        date:
-            new Date().toLocaleDateString(
-                "fr-FR"
-            )
-
-    });
-
-    saveSalesHistory();
-}
-
-
-/* =========================================================
-   REMPLACEMENT DE LA VENTE
-========================================================= */
-
-const originalSellCar =
-    sellCar;
-
-sellCar = function(id) {
-
-    const car =
-        inventory.find(
-            vehicle => vehicle.id === id
-        );
-
-    if (!car) return;
-
-    const multiplier =
-        0.95 +
-        Math.random() * 0.10;
-
-    const salePrice =
-        Math.round(
-            car.price * multiplier
-        );
-
-    registerSale(
-        car,
-        salePrice
-    );
-
-    originalSellCar(id);
-
-    renderSales();
-};
-
-
-/* =========================================================
-   INITIALISATION
-========================================================= */
-
-prepareWorkshopData();
-
-renderMarket();
-
-renderWorkshop();
-
-renderSales();
-
-updateUI();
-
-renderInventory();
-
-saveGame();
-
-
-console.log(
-    "ZENTRO DEALERSHIP V5 — STOCK / MARCHÉ / ATELIER / VENTES OK"
-);
-
-
-/* =========================================================
-   FIN PARTIE 2
-========================================================= */
 /* =========================================================
    SHOWROOM 3D — THREE.JS
 ========================================================= */
@@ -3049,3 +2703,2531 @@ document
 console.log(
     "🏢 ZENTRO DEALERSHIP — SHOWROOM 3D READY"
 );
+✅ Maintenant tu dois avoir
+
+Partie 1 → Partie 2 → Partie 3
+
+dans un seul main.js.
+
+⚠️ Ensuite, fais Enregistrer / Commit changes sur GitHub et recharge ton site. Le Showroom devrait maintenant charger Three.js et afficher les véhicules de ton stock. 🚗💨
+
+plus aucun bouton ne fonctionnent 
+
+Oui — c’est ma faute. 😕 Les 3 parties que je t’ai données ne devaient pas être assemblées de cette façon avec ton ancien fichier. Il y a très probablement des fonctions/variables en double, ce qui fait que le JavaScript entier ne se charge plus → donc aucun bouton ne répond.
+
+🛑 Ne modifie plus ton fichier pour l'instant
+
+Ne supprime rien d'autre et ne rajoute pas de code.
+
+Le plus propre est que je reprenne ton main.js actuel complet et que je te fasse une version corrigée unique, avec :
+
+✅ Dashboard
+✅ Stock
+✅ Marché
+✅ Atelier
+✅ Ventes
+✅ sauvegarde LocalStorage
+✅ Showroom 3D
+✅ boutons fonctionnels
+✅ aucun doublon
+✅ pas de boucle entre les menus
+✅ chargement Three.js propre
+
+Et surtout : un seul main.js final, au lieu de te faire fusionner des morceaux à la main.
+
+👉 Comme ton fichier main.js est déjà disponible dans la conversation, je peux repartir directement dessus et corriger la structure.
+
+au pir renvoie moi le mains que je t'avai envoyer et redonne le moi,on pourra faire des modifs a partir de celui la 
+
+Oui 👍 On repart exactement de ton main.js d’origine, sans ajouter ni supprimer de fonctionnalités.
+
+J’ai récupéré le fichier que tu m’avais envoyé et vérifié qu’il est syntaxiquement valide.
+
+👉 
+Télécharger ton main.js original
+
+À partir de maintenant
+
+On fait beaucoup plus proprement :
+
+Tu remplaces ton main.js actuel par celui-ci.
+On vérifie que tous les boutons refonctionnent.
+Ensuite, on fait les modifications une par une, directement à partir de cette base.
+Je ne te demanderai plus de fusionner plusieurs gros morceaux de code. 🔧
+
+Base de départ = ton main.js original, pas le code que j'ai essayé de reconstruire.
+
+main_original_zentro_dealership.js
+Code
+
+/* =========================================================
+ZENTRO DEALERSHIP
+V5 — STOCK + MARCHÉ + ATELIER + VENTES
+========================================================= */
+
+let money = Number(localStorage.getItem("zentro_money")) || 250000;
+
+let inventory = JSON.parse(
+localStorage.getItem("zentro_inventory") || "null"
+) || [
+{
+id: 1,
+name: "BMW M4 Competition 2025",
+km: 18420,
+price: 94900,
+category: "Sportive",
+condition: 100,
+performance: 0,
+detailing: 0
+},
+{
+id: 2,
+name: "Audi RS6 Avant 2025",
+km: 9820,
+price: 128500,
+category: "Premium",
+condition: 100,
+performance: 0,
+detailing: 0
+},
+{
+id: 3,
+name: "Mercedes-AMG C63 S E Performance 2024",
+km: 24100,
+price: 89900,
+category: "Sportive",
+condition: 100,
+performance: 0,
+detailing: 0
+}
+];
+
+let reputation =
+Number(localStorage.getItem("zentro_reputation")) || 4.8;
+
+let salesHistory = JSON.parse(
+localStorage.getItem("zentro_sales_history") || "[]"
+);
+
+let currentClient = null;
+let currentOffer = null;
+let negotiationStep = 0;
+
+/* =========================================================
+CLIENTS
+========================================================= */
+
+const clientProfiles = [
+{
+name: "Lucas Martin",
+type: "Passionné automobile",
+budget: 150000,
+tolerance: 0.08
+},
+{
+name: "Thomas Bernard",
+type: "Client premium",
+budget: 180000,
+tolerance: 0.06
+},
+{
+name: "Antoine Dubois",
+type: "Acheteur sportif",
+budget: 120000,
+tolerance: 0.10
+},
+{
+name: "Hugo Morel",
+type: "Jeune entrepreneur",
+budget: 200000,
+tolerance: 0.05
+},
+{
+name: "Maxime Laurent",
+type: "Collectionneur",
+budget: 300000,
+tolerance: 0.12
+},
+{
+name: "Alexandre Petit",
+type: "Client particulier",
+budget: 100000,
+tolerance: 0.07
+}
+];
+
+/* =========================================================
+NETTOYAGE DES ANCIENNES DONNÉES
+========================================================= */
+
+function getCarName(car) {
+
+if (!car) {
+    return "Véhicule";
+}
+
+if (
+    typeof car.name === "string" &&
+    car.name.trim() !== "" &&
+    car.name !== "undefined"
+) {
+    return car.name;
+}
+
+if (
+    typeof car.model === "string" &&
+    car.model.trim() !== "" &&
+    car.model !== "undefined"
+) {
+    return car.model;
+}
+
+if (
+    typeof car.title === "string" &&
+    car.title.trim() !== "" &&
+    car.title !== "undefined"
+) {
+    return car.title;
+}
+
+return "Véhicule";
+
+}
+
+/* =========================================================
+SAUVEGARDE
+========================================================= */
+
+function saveGame() {
+
+localStorage.setItem(
+    "zentro_money",
+    money
+);
+
+localStorage.setItem(
+    "zentro_inventory",
+    JSON.stringify(inventory)
+);
+
+localStorage.setItem(
+    "zentro_reputation",
+    reputation
+);
+
+localStorage.setItem(
+    "zentro_sales_history",
+    JSON.stringify(salesHistory)
+);
+
+}
+
+/* =========================================================
+UTILITAIRES
+========================================================= */
+
+function formatMoney(value) {
+
+return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0
+}).format(value);
+
+}
+
+function showToast(message) {
+
+const toast =
+    document.getElementById("toast");
+
+if (!toast) return;
+
+toast.textContent = message;
+
+toast.classList.add("show");
+
+clearTimeout(window.toastTimer);
+
+window.toastTimer = setTimeout(() => {
+
+    toast.classList.remove("show");
+
+}, 2500);
+
+}
+
+function updateUI() {
+
+const moneyElement =
+    document.getElementById("money");
+
+if (moneyElement) {
+
+    moneyElement.textContent =
+        formatMoney(money);
+}
+
+
+const stockCount =
+    document.getElementById("stockCount");
+
+if (stockCount) {
+
+    stockCount.textContent =
+        inventory.length;
+}
+
+}
+
+/* =========================================================
+PRÉPARATION INVENTAIRE
+========================================================= */
+
+function prepareInventory() {
+
+inventory.forEach(car => {
+
+    if (!car.name || car.name === "undefined") {
+
+        if (car.model) {
+
+            car.name = car.model;
+
+        } else {
+
+            car.name = "Véhicule";
+        }
+    }
+
+
+    if (typeof car.km !== "number") {
+
+        car.km = 0;
+    }
+
+
+    if (typeof car.price !== "number") {
+
+        car.price = 0;
+    }
+
+
+    if (!car.category) {
+
+        car.category = "Automobile";
+    }
+
+
+    if (typeof car.condition !== "number") {
+
+        car.condition = 100;
+    }
+
+
+    if (typeof car.performance !== "number") {
+
+        car.performance = 0;
+    }
+
+
+    if (typeof car.detailing !== "number") {
+
+        car.detailing = 0;
+    }
+});
+
+}
+
+/* =========================================================
+NETTOYAGE HISTORIQUE
+========================================================= */
+
+function prepareSalesHistory() {
+
+salesHistory.forEach(sale => {
+
+    if (
+        !sale.carName ||
+        sale.carName === "undefined"
+    ) {
+
+        if (
+            sale.carModel &&
+            sale.carModel !== "undefined"
+        ) {
+
+            sale.carName =
+                sale.carModel;
+
+        } else {
+
+            sale.carName =
+                "Véhicule";
+        }
+    }
+
+
+    if (
+        !sale.clientName ||
+        sale.clientName === "undefined"
+    ) {
+
+        sale.clientName =
+            "Client";
+    }
+
+
+    if (typeof sale.salePrice !== "number") {
+
+        sale.salePrice = 0;
+    }
+
+
+    if (typeof sale.profit !== "number") {
+
+        sale.profit = 0;
+    }
+});
+
+}
+
+/* =========================================================
+NAVIGATION
+========================================================= */
+
+const pageTitles = {
+
+dashboard: "Dashboard",
+
+stock: "Stock",
+
+market: "Marché",
+
+workshop: "Atelier",
+
+sales: "Ventes",
+
+stats: "Statistiques"
+
+};
+
+function openPage(pageName) {
+
+document
+    .querySelectorAll(".page")
+    .forEach(page => {
+
+        page.classList.remove(
+            "active-page"
+        );
+    });
+
+
+const target =
+    document.getElementById(pageName);
+
+if (target) {
+
+    target.classList.add(
+        "active-page"
+    );
+}
+
+
+document
+    .querySelectorAll(".nav-btn")
+    .forEach(button => {
+
+        button.classList.remove("active");
+
+        if (
+            button.dataset.page ===
+            pageName
+        ) {
+
+            button.classList.add(
+                "active"
+            );
+        }
+    });
+
+
+const title =
+    document.querySelector(
+        ".topbar h1"
+    );
+
+if (title) {
+
+    title.textContent =
+        pageTitles[pageName] ||
+        "ZENTRO DEALERSHIP";
+}
+
+}
+
+document
+.querySelectorAll(".nav-btn")
+.forEach(button => {
+
+    button.addEventListener(
+        "click",
+        () => {
+
+            openPage(
+                button.dataset.page
+            );
+        }
+    );
+});
+
+document
+.querySelectorAll(
+"[data-page-link]"
+)
+.forEach(button => {
+
+    button.addEventListener(
+        "click",
+        () => {
+
+            openPage(
+                button.dataset.pageLink
+            );
+        }
+    );
+});
+
+/* =========================================================
+STOCK
+========================================================= */
+
+function renderInventory() {
+
+const container =
+    document.querySelector(
+        "#stock .inventory-grid"
+    );
+
+if (!container) return;
+
+container.innerHTML = "";
+
+
+if (inventory.length === 0) {
+
+    container.innerHTML = `
+
+        <div class="empty-state">
+
+            <h3>Stock vide</h3>
+
+            <p>
+                Rendez-vous dans le Marché
+                pour acheter des véhicules.
+            </p>
+
+        </div>
+
+    `;
+
+    return;
+}
+
+
+inventory.forEach(car => {
+
+    const card =
+        document.createElement("div");
+
+    card.className =
+        "inventory-card";
+
+
+    card.innerHTML = `
+
+        <div class="inventory-image">
+
+            <div class="car-placeholder">
+
+                ${getCarName(car)}
+
+            </div>
+
+        </div>
+
+
+        <div class="inventory-info">
+
+            <h3>
+                ${getCarName(car)}
+            </h3>
+
+            <p>
+                ${car.km.toLocaleString("fr-FR")}
+                km
+            </p>
+
+            <p>
+                ${car.category}
+            </p>
+
+            <p>
+                État :
+                <strong>
+                    ${Math.round(car.condition)}%
+                </strong>
+            </p>
+
+            <p>
+                Valeur :
+                <strong>
+                    ${formatMoney(car.price)}
+                </strong>
+            </p>
+
+
+            <button
+                class="sell-btn"
+                data-sell-id="${car.id}">
+
+                Vendre
+
+            </button>
+
+        </div>
+
+    `;
+
+
+    container.appendChild(card);
+});
+
+
+container
+    .querySelectorAll(
+        "[data-sell-id]"
+    )
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                sellCar(
+                    Number(
+                        button.dataset.sellId
+                    )
+                );
+            }
+        );
+    });
+
+}
+
+/* =========================================================
+VENTE DIRECTE STOCK
+========================================================= */
+
+function sellCar(id) {
+
+const car =
+    inventory.find(
+        item => item.id === id
+    );
+
+if (!car) return;
+
+
+const salePrice =
+    Math.round(
+        car.price *
+        (
+            0.95 +
+            Math.random() * 0.10
+        )
+    );
+
+
+money += salePrice;
+
+
+inventory =
+    inventory.filter(
+        item => item.id !== id
+    );
+
+
+reputation =
+    Math.min(
+        5,
+        reputation + 0.02
+    );
+
+
+salesHistory.push({
+
+    id: Date.now(),
+
+    clientName:
+        "Vente directe",
+
+    carName:
+        getCarName(car),
+
+    purchasePrice:
+        car.price,
+
+    salePrice:
+        salePrice,
+
+    profit:
+        salePrice - car.price,
+
+    date:
+        new Date()
+            .toLocaleDateString(
+                "fr-FR"
+            )
+});
+
+
+saveGame();
+
+updateUI();
+
+renderInventory();
+
+renderWorkshopVehicles();
+
+renderSales();
+
+renderStats();
+
+
+showToast(
+    `${getCarName(car)} vendu pour ${formatMoney(salePrice)}`
+);
+
+}
+
+/* =========================================================
+MARCHÉ
+========================================================= */
+
+const marketCars = [
+
+{
+    name:
+        "BMW M3 Competition 2025",
+
+    km:
+        8200,
+
+    price:
+        91500,
+
+    category:
+        "Sportive"
+},
+
+
+{
+    name:
+        "BMW M5 2025",
+
+    km:
+        6100,
+
+    price:
+        124900,
+
+    category:
+        "Sportive"
+},
+
+
+{
+    name:
+        "Audi RS5 2025",
+
+    km:
+        12400,
+
+    price:
+        84900,
+
+    category:
+        "Sportive"
+},
+
+
+{
+    name:
+        "Audi RS7 2025",
+
+    km:
+        7600,
+
+    price:
+        119900,
+
+    category:
+        "Premium"
+},
+
+
+{
+    name:
+        "Mercedes-AMG C43 2025",
+
+    km:
+        10400,
+
+    price:
+        72500,
+
+    category:
+        "Sportive"
+},
+
+
+{
+    name:
+        "Porsche 911 Carrera 2025",
+
+    km:
+        5400,
+
+    price:
+        139900,
+
+    category:
+        "Sportive"
+}
+
+];
+
+function renderMarket() {
+
+const marketPage =
+    document.getElementById("market");
+
+if (!marketPage) return;
+
+
+let container =
+    marketPage.querySelector(
+        ".market-cars"
+    );
+
+
+if (!container) {
+
+    container =
+        document.createElement("div");
+
+    container.className =
+        "market-cars";
+
+
+    const panel =
+        marketPage.querySelector(
+            ".market-panel"
+        );
+
+
+    if (panel) {
+
+        panel.after(container);
+
+    } else {
+
+        marketPage.appendChild(
+            container
+        );
+    }
+}
+
+
+container.innerHTML = `
+
+    <div class="market-grid">
+
+        ${marketCars.map(
+            (car, index) => `
+
+            <div class="market-car">
+
+                <div class="market-car-image">
+
+                    <span>🚘</span>
+
+                </div>
+
+
+                <div class="market-car-info">
+
+                    <h3>
+                        ${car.name}
+                    </h3>
+
+                    <p>
+                        ${car.km.toLocaleString("fr-FR")}
+                        km
+                    </p>
+
+                    <p>
+                        ${car.category}
+                    </p>
+
+                    <strong>
+                        ${formatMoney(car.price)}
+                    </strong>
+
+
+                    <button
+                        class="buy-market-btn"
+                        data-market-id="${index}">
+
+                        Acheter
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        `
+        ).join("")}
+
+    </div>
+
+`;
+
+
+container
+    .querySelectorAll(
+        "[data-market-id]"
+    )
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                buyCar(
+                    marketCars[
+                        Number(
+                            button.dataset.marketId
+                        )
+                    ]
+                );
+            }
+        );
+    });
+
+}
+
+function buyCar(car) {
+
+if (money < car.price) {
+
+    showToast(
+        "Fonds insuffisants."
+    );
+
+    return;
+}
+
+
+money -= car.price;
+
+
+inventory.push({
+
+    id:
+        Date.now(),
+
+    name:
+        car.name,
+
+    km:
+        car.km,
+
+    price:
+        car.price,
+
+    category:
+        car.category,
+
+    condition:
+        100,
+
+    performance:
+        0,
+
+    detailing:
+        0
+});
+
+
+saveGame();
+
+updateUI();
+
+renderInventory();
+
+renderWorkshopVehicles();
+
+renderSales();
+
+renderStats();
+
+
+showToast(
+    `${car.name} ajouté au stock.`
+);
+
+}
+
+/* =========================================================
+ATELIER
+========================================================= */
+
+function repairPrice(car) {
+
+if (
+    car.condition >= 100
+) {
+
+    return 0;
+}
+
+
+return Math.max(
+
+    500,
+
+    Math.round(
+        (100 - car.condition) *
+        180
+    )
+);
+
+}
+
+function renderWorkshop() {
+
+const workshop =
+    document.getElementById(
+        "workshop"
+    );
+
+if (!workshop) return;
+
+
+workshop.innerHTML = `
+
+    <div class="workshop-layout">
+
+
+        <div class="workshop-vehicles">
+
+            <h2>
+                Véhicules disponibles
+            </h2>
+
+
+            <div
+                id="workshopVehicleList">
+            </div>
+
+        </div>
+
+
+        <div class="workshop-management">
+
+            <div
+                id="workshopDetails">
+
+                <h2>
+                    Sélectionnez un véhicule
+                </h2>
+
+                <p>
+                    Choisissez un véhicule
+                    pour accéder aux opérations
+                    de l'atelier.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+`;
+
+
+renderWorkshopVehicles();
+
+}
+
+function renderWorkshopVehicles() {
+
+const list =
+    document.getElementById(
+        "workshopVehicleList"
+    );
+
+if (!list) return;
+
+
+if (inventory.length === 0) {
+
+    list.innerHTML = `
+
+        <p>
+            Aucun véhicule en stock.
+        </p>
+
+    `;
+
+    return;
+}
+
+
+list.innerHTML =
+    inventory
+        .map(
+            car => `
+
+            <button
+                class="workshop-car"
+                data-workshop-id="${car.id}">
+
+                <strong>
+                    ${getCarName(car)}
+                </strong>
+
+                <span>
+                    État :
+                    ${Math.round(car.condition)}%
+                </span>
+
+                <span>
+                    ${formatMoney(car.price)}
+                </span>
+
+            </button>
+
+        `
+        )
+        .join("");
+
+
+list
+    .querySelectorAll(
+        "[data-workshop-id]"
+    )
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                selectWorkshopCar(
+                    Number(
+                        button.dataset.workshopId
+                    )
+                );
+            }
+        );
+    });
+
+}
+
+function selectWorkshopCar(id) {
+
+const car =
+    inventory.find(
+        item => item.id === id
+    );
+
+
+const details =
+    document.getElementById(
+        "workshopDetails"
+    );
+
+
+if (!car || !details) return;
+
+
+const repairCost =
+    repairPrice(car);
+
+
+details.innerHTML = `
+
+    <div class="workshop-selected">
+
+        <h2>
+            ${getCarName(car)}
+        </h2>
+
+        <p>
+            ${car.km.toLocaleString("fr-FR")}
+            km • ${car.category}
+        </p>
+
+
+        <div class="workshop-stat">
+
+            <span>
+                État
+            </span>
+
+            <strong>
+                ${Math.round(car.condition)}%
+            </strong>
+
+        </div>
+
+
+        <div class="workshop-bar">
+
+            <div
+                style="width:${car.condition}%">
+            </div>
+
+        </div>
+
+
+        <div class="workshop-stat">
+
+            <span>
+                Performance
+            </span>
+
+            <strong>
+                +${car.performance}%
+            </strong>
+
+        </div>
+
+
+        <div class="workshop-stat">
+
+            <span>
+                Detailing
+            </span>
+
+            <strong>
+                ${car.detailing}%
+            </strong>
+
+        </div>
+
+
+        <hr>
+
+
+        <div class="workshop-actions">
+
+
+            <button
+                class="workshop-action"
+                data-action="repair">
+
+                🔧 Réparer
+
+                <small>
+
+                    ${
+                        repairCost === 0
+                            ? "Déjà parfait"
+                            : formatMoney(
+                                repairCost
+                            )
+                    }
+
+                </small>
+
+            </button>
+
+
+            <button
+                class="workshop-action"
+                data-action="performance">
+
+                ⚡ Performance
+
+                <small>
+                    7 500 €
+                </small>
+
+            </button>
+
+
+            <button
+                class="workshop-action"
+                data-action="detailing">
+
+                ✨ Detailing
+
+                <small>
+                    2 500 €
+                </small>
+
+            </button>
+
+
+        </div>
+
+    </div>
+
+`;
+
+
+details
+    .querySelector(
+        "[data-action='repair']"
+    )
+    ?.addEventListener(
+        "click",
+        () => {
+
+            repairVehicle(
+                car.id
+            );
+        }
+    );
+
+
+details
+    .querySelector(
+        "[data-action='performance']"
+    )
+    ?.addEventListener(
+        "click",
+        () => {
+
+            upgradeVehicle(
+                car.id
+            );
+        }
+    );
+
+
+details
+    .querySelector(
+        "[data-action='detailing']"
+    )
+    ?.addEventListener(
+        "click",
+        () => {
+
+            detailVehicle(
+                car.id
+            );
+        }
+    );
+
+}
+
+function repairVehicle(id) {
+
+const car =
+    inventory.find(
+        item => item.id === id
+    );
+
+if (!car) return;
+
+
+const cost =
+    repairPrice(car);
+
+
+if (cost === 0) {
+
+    showToast(
+        "Ce véhicule est déjà en parfait état."
+    );
+
+    return;
+}
+
+
+if (money < cost) {
+
+    showToast(
+        "Fonds insuffisants."
+    );
+
+    return;
+}
+
+
+money -= cost;
+
+car.condition = 100;
+
+car.price +=
+    Math.round(
+        cost * 0.65
+    );
+
+
+saveGame();
+
+updateUI();
+
+renderInventory();
+
+renderWorkshopVehicles();
+
+renderSales();
+
+renderStats();
+
+
+selectWorkshopCar(id);
+
+
+showToast(
+    `${getCarName(car)} réparé pour ${formatMoney(cost)}.`
+);
+
+}
+
+function upgradeVehicle(id) {
+
+const car =
+    inventory.find(
+        item => item.id === id
+    );
+
+if (!car) return;
+
+
+const cost = 7500;
+
+
+if (money < cost) {
+
+    showToast(
+        "Fonds insuffisants."
+    );
+
+    return;
+}
+
+
+if (car.performance >= 25) {
+
+    showToast(
+        "Performance maximale atteinte."
+    );
+
+    return;
+}
+
+
+money -= cost;
+
+
+car.performance += 5;
+
+car.price += 10000;
+
+
+saveGame();
+
+updateUI();
+
+renderInventory();
+
+renderSales();
+
+renderStats();
+
+
+selectWorkshopCar(id);
+
+
+showToast(
+    `${getCarName(car)} amélioré.`
+);
+
+}
+
+function detailVehicle(id) {
+
+const car =
+    inventory.find(
+        item => item.id === id
+    );
+
+if (!car) return;
+
+
+const cost = 2500;
+
+
+if (money < cost) {
+
+    showToast(
+        "Fonds insuffisants."
+    );
+
+    return;
+}
+
+
+if (car.detailing >= 100) {
+
+    showToast(
+        "Detailing maximal atteint."
+    );
+
+    return;
+}
+
+
+money -= cost;
+
+
+car.detailing =
+    Math.min(
+        100,
+        car.detailing + 25
+    );
+
+
+car.price += 3000;
+
+
+saveGame();
+
+updateUI();
+
+renderInventory();
+
+renderSales();
+
+renderStats();
+
+
+selectWorkshopCar(id);
+
+
+showToast(
+    `${getCarName(car)} préparé pour la vente.`
+);
+
+}
+
+/* =========================================================
+VENTES V2
+========================================================= */
+
+function generateClient() {
+
+if (inventory.length === 0) {
+
+    currentClient = null;
+
+    currentOffer = null;
+
+    return;
+}
+
+
+const profile =
+    clientProfiles[
+        Math.floor(
+            Math.random() *
+            clientProfiles.length
+        )
+    ];
+
+
+const compatibleCars =
+    inventory.filter(
+        car => {
+
+            return (
+                car.price <=
+                profile.budget * 1.20
+            );
+        }
+    );
+
+
+const availableCars =
+    compatibleCars.length
+        ? compatibleCars
+        : inventory;
+
+
+const car =
+    availableCars[
+        Math.floor(
+            Math.random() *
+            availableCars.length
+        )
+    ];
+
+
+const baseOffer =
+    car.price *
+    (
+        0.88 +
+        Math.random() * 0.08
+    );
+
+
+currentClient = {
+
+    ...profile,
+
+    carId:
+        car.id,
+
+    interest:
+        Math.round(
+            65 +
+            Math.random() * 30
+        )
+};
+
+
+currentOffer =
+    Math.round(
+        baseOffer
+    );
+
+
+negotiationStep = 0;
+
+}
+
+function renderSales() {
+
+const salesPage =
+    document.getElementById(
+        "sales"
+    );
+
+if (!salesPage) return;
+
+
+if (!currentClient) {
+
+    generateClient();
+}
+
+
+const soldCount =
+    salesHistory.length;
+
+
+const totalRevenue =
+    salesHistory.reduce(
+        (sum, sale) =>
+            sum +
+            Number(
+                sale.salePrice || 0
+            ),
+        0
+    );
+
+
+const totalProfit =
+    salesHistory.reduce(
+        (sum, sale) =>
+            sum +
+            Number(
+                sale.profit || 0
+            ),
+        0
+    );
+
+
+salesPage.innerHTML = `
+
+    <div class="sales-dashboard">
+
+
+        <div class="sales-overview">
+
+
+            <div class="sales-stat">
+
+                <span>
+                    Ventes
+                </span>
+
+                <strong>
+                    ${soldCount}
+                </strong>
+
+            </div>
+
+
+            <div class="sales-stat">
+
+                <span>
+                    Chiffre d'affaires
+                </span>
+
+                <strong>
+                    ${formatMoney(totalRevenue)}
+                </strong>
+
+            </div>
+
+
+            <div class="sales-stat">
+
+                <span>
+                    Bénéfice
+                </span>
+
+                <strong>
+                    ${formatMoney(totalProfit)}
+                </strong>
+
+            </div>
+
+
+            <div class="sales-stat">
+
+                <span>
+                    Réputation
+                </span>
+
+                <strong>
+                    ${reputation.toFixed(2)} / 5
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <div id="salesClientArea"></div>
+
+
+        <div class="sales-history">
+
+            <h2>
+                Historique des ventes
+            </h2>
+
+
+            ${
+                salesHistory.length === 0
+
+                ? `
+
+                    <p>
+                        Aucune vente réalisée
+                        pour le moment.
+                    </p>
+
+                `
+
+                : `
+
+                    <div class="sales-history-list">
+
+                        ${
+                            salesHistory
+                                .slice()
+                                .reverse()
+                                .map(
+                                    sale => `
+
+                                    <div
+                                        class="sale-row">
+
+                                        <div>
+
+                                            <strong>
+                                                ${
+                                                    sale.carName &&
+                                                    sale.carName !== "undefined"
+                                                        ? sale.carName
+                                                        : "Véhicule"
+                                                }
+                                            </strong>
+
+                                            <small>
+
+                                                Client :
+                                                ${
+                                                    sale.clientName &&
+                                                    sale.clientName !== "undefined"
+                                                        ? sale.clientName
+                                                        : "Client"
+                                                }
+
+                                            </small>
+
+                                        </div>
+
+
+                                        <div>
+
+                                            ${
+                                                formatMoney(
+                                                    Number(
+                                                        sale.salePrice ||
+                                                        0
+                                                    )
+                                                )
+                                            }
+
+                                        </div>
+
+
+                                        <div>
+
+                                            ${
+                                                sale.profit >= 0
+                                                    ? "+"
+                                                    : ""
+                                            }${
+                                                formatMoney(
+                                                    Number(
+                                                        sale.profit ||
+                                                        0
+                                                    )
+                                                )
+                                            }
+
+                                        </div>
+
+                                    </div>
+
+                                `
+                                )
+                                .join("")
+                        }
+
+                    </div>
+
+                `
+            }
+
+        </div>
+
+
+    </div>
+
+`;
+
+
+renderSalesClient();
+
+}
+
+/* =========================================================
+CLIENT ACTUEL
+========================================================= */
+
+function renderSalesClient() {
+
+const area =
+    document.getElementById(
+        "salesClientArea"
+    );
+
+if (!area) return;
+
+
+if (!currentClient) {
+
+    area.innerHTML = `
+
+        <div class="sales-empty">
+
+            <h2>
+                Aucun client disponible
+            </h2>
+
+            <p>
+                Ajoutez un véhicule au stock
+                pour recevoir des clients.
+            </p>
+
+        </div>
+
+    `;
+
+    return;
+}
+
+
+const car =
+    inventory.find(
+        item =>
+            item.id ===
+            currentClient.carId
+    );
+
+
+if (!car) {
+
+    generateClient();
+
+    renderSalesClient();
+
+    return;
+}
+
+
+const margin =
+    currentOffer -
+    car.price;
+
+
+area.innerHTML = `
+
+    <div class="client-card">
+
+
+        <div class="client-header">
+
+
+            <div>
+
+                <span class="client-label">
+                    NOUVEAU CLIENT
+                </span>
+
+
+                <h2>
+                    ${currentClient.name}
+                </h2>
+
+
+                <p>
+                    ${currentClient.type}
+                </p>
+
+            </div>
+
+
+            <div class="client-budget">
+
+                Budget :
+
+                <strong>
+                    ${formatMoney(
+                        currentClient.budget
+                    )}
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="client-request">
+
+
+            <h3>
+                Recherche du client
+            </h3>
+
+
+            <div class="requested-car">
+
+
+                <strong>
+                    ${getCarName(car)}
+                </strong>
+
+
+                <span>
+
+                    ${car.km.toLocaleString(
+                        "fr-FR"
+                    )}
+                    km
+
+                </span>
+
+
+                <span>
+
+                    État :
+                    ${Math.round(
+                        car.condition
+                    )}%
+
+                </span>
+
+
+                <span>
+
+                    Valeur :
+                    ${formatMoney(
+                        car.price
+                    )}
+
+                </span>
+
+
+            </div>
+
+
+        </div>
+
+
+        <div class="offer-box">
+
+
+            <div>
+
+                <span>
+                    Offre actuelle
+                </span>
+
+
+                <strong>
+                    ${formatMoney(
+                        currentOffer
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Marge
+                </span>
+
+
+                <strong
+                    class="${
+                        margin >= 0
+                            ? "positive"
+                            : "negative"
+                    }">
+
+                    ${
+                        margin >= 0
+                            ? "+"
+                            : ""
+                    }${formatMoney(
+                        margin
+                    )}
+
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="negotiation">
+
+
+            <h3>
+                Négociation
+            </h3>
+
+
+            <div class="negotiation-actions">
+
+
+                <button
+                    id="acceptOffer">
+
+                    💰 Accepter
+
+                </button>
+
+
+                <button
+                    id="negotiateOffer">
+
+                    🤝 Négocier
+
+                </button>
+
+
+                <button
+                    id="rejectOffer">
+
+                    ❌ Refuser
+
+                </button>
+
+
+            </div>
+
+
+            <div class="client-interest">
+
+                Intérêt :
+
+                <strong>
+                    ${currentClient.interest}%
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+`;
+
+
+document
+    .getElementById(
+        "acceptOffer"
+    )
+    ?.addEventListener(
+        "click",
+        acceptOffer
+    );
+
+
+document
+    .getElementById(
+        "negotiateOffer"
+    )
+    ?.addEventListener(
+        "click",
+        negotiateOffer
+    );
+
+
+document
+    .getElementById(
+        "rejectOffer"
+    )
+    ?.addEventListener(
+        "click",
+        rejectOffer
+    );
+
+}
+
+/* =========================================================
+NÉGOCIATION
+========================================================= */
+
+function negotiateOffer() {
+
+if (!currentClient) return;
+
+
+negotiationStep++;
+
+
+const car =
+    inventory.find(
+        item =>
+            item.id ===
+            currentClient.carId
+    );
+
+
+if (!car) return;
+
+
+const increase =
+    Math.round(
+        car.price *
+        (
+            0.015 +
+            Math.random() * 0.025
+        )
+    );
+
+
+currentOffer +=
+    increase;
+
+
+currentClient.interest -=
+    Math.floor(
+        3 +
+        Math.random() * 7
+    );
+
+
+if (
+    currentClient.interest <= 0
+) {
+
+    currentClient.interest = 0;
+
+
+    showToast(
+        `${currentClient.name} quitte la concession.`
+    );
+
+
+    generateClient();
+
+} else {
+
+    showToast(
+        `Le client accepte de discuter. Offre : ${formatMoney(currentOffer)}`
+    );
+}
+
+
+renderSales();
+
+}
+
+function acceptOffer() {
+
+if (!currentClient) return;
+
+
+const car =
+    inventory.find(
+        item =>
+            item.id ===
+            currentClient.carId
+    );
+
+
+if (!car) return;
+
+
+const salePrice =
+    currentOffer;
+
+
+const profit =
+    salePrice -
+    car.price;
+
+
+money +=
+    salePrice;
+
+
+salesHistory.push({
+
+    id:
+        Date.now(),
+
+    clientName:
+        currentClient.name,
+
+    carName:
+        getCarName(car),
+
+    purchasePrice:
+        car.price,
+
+    salePrice:
+        salePrice,
+
+    profit:
+        profit,
+
+    date:
+        new Date()
+            .toLocaleDateString(
+                "fr-FR"
+            )
+});
+
+
+inventory =
+    inventory.filter(
+        item =>
+            item.id !==
+            car.id
+    );
+
+
+if (profit > 0) {
+
+    reputation =
+        Math.min(
+            5,
+            reputation + 0.03
+        );
+
+} else {
+
+    reputation =
+        Math.max(
+            1,
+            reputation - 0.01
+        );
+}
+
+
+saveGame();
+
+updateUI();
+
+renderInventory();
+
+renderWorkshopVehicles();
+
+
+showToast(
+    `${getCarName(car)} vendu à ${currentClient.name} pour ${formatMoney(salePrice)}`
+);
+
+
+generateClient();
+
+renderSales();
+
+renderStats();
+
+}
+
+function rejectOffer() {
+
+if (!currentClient) return;
+
+
+showToast(
+    `${currentClient.name} repart sans acheter.`
+);
+
+
+generateClient();
+
+renderSales();
+
+}
+
+/* =========================================================
+STATISTIQUES
+========================================================= */
+
+function renderStats() {
+
+const stats =
+    document.getElementById(
+        "stats"
+    );
+
+if (!stats) return;
+
+
+const revenue =
+    salesHistory.reduce(
+        (sum, sale) =>
+            sum +
+            Number(
+                sale.salePrice || 0
+            ),
+        0
+    );
+
+
+const profit =
+    salesHistory.reduce(
+        (sum, sale) =>
+            sum +
+            Number(
+                sale.profit || 0
+            ),
+        0
+    );
+
+
+stats.innerHTML = `
+
+    <div class="stats-dashboard">
+
+
+        <div class="stats-card">
+
+            <span>
+                Capital disponible
+            </span>
+
+            <strong>
+                ${formatMoney(money)}
+            </strong>
+
+        </div>
+
+
+        <div class="stats-card">
+
+            <span>
+                Véhicules en stock
+            </span>
+
+            <strong>
+                ${inventory.length}
+            </strong>
+
+        </div>
+
+
+        <div class="stats-card">
+
+            <span>
+                Véhicules vendus
+            </span>
+
+            <strong>
+                ${salesHistory.length}
+            </strong>
+
+        </div>
+
+
+        <div class="stats-card">
+
+            <span>
+                Chiffre d'affaires
+            </span>
+
+            <strong>
+                ${formatMoney(revenue)}
+            </strong>
+
+        </div>
+
+
+        <div class="stats-card">
+
+            <span>
+                Bénéfice cumulé
+            </span>
+
+            <strong>
+                ${formatMoney(profit)}
+            </strong>
+
+        </div>
+
+
+        <div class="stats-card">
+
+            <span>
+                Réputation
+            </span>
+
+            <strong>
+                ${reputation.toFixed(2)} / 5
+            </strong>
+
+        </div>
+
+
+    </div>
+
+`;
+
+}
+
+/* =========================================================
+BOUTON VOIR TOUT
+========================================================= */
+
+const viewCar =
+document.getElementById(
+"viewCar"
+);
+
+if (viewCar) {
+
+viewCar.addEventListener(
+    "click",
+    () => {
+
+        if (
+            inventory.length === 0
+        ) {
+
+            showToast(
+                "Votre stock est vide."
+            );
+
+            return;
+        }
+
+
+        openPage("stock");
+    }
+);
+
+}
+
+/* =========================================================
+NOTIFICATIONS
+========================================================= */
+
+const notificationButton =
+document.getElementById(
+"notificationButton"
+);
+
+if (notificationButton) {
+
+notificationButton.addEventListener(
+    "click",
+    () => {
+
+        showToast(
+            "Aucune nouvelle notification."
+        );
+    }
+);
+
+}
+
+/* =========================================================
+INITIALISATION
+========================================================= */
+
+prepareInventory();
+
+prepareSalesHistory();
+
+saveGame();
+
+renderMarket();
+
+renderWorkshop();
+
+renderInventory();
+
+renderSales();
+
+renderStats();
+
+updateUI();
+
+saveGame();
+
+console.log(
+"ZENTRO DEALERSHIP V5 — système chargé."
+);
+
+Fermer
