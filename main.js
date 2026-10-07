@@ -667,95 +667,257 @@ function sellCar(id) {
 const marketCars = [
 
     {
-        name:
-            "BMW M3 Competition 2025",
-
-        km:
-            8200,
-
-        price:
-            91500,
-
-        category:
-            "Sportive"
+        name: "BMW M2 Competition 2025",
+        km: 7200,
+        price: 79500,
+        category: "Sportive"
     },
 
-
     {
-        name:
-            "BMW M5 2025",
-
-        km:
-            6100,
-
-        price:
-            124900,
-
-        category:
-            "Sportive"
+        name: "BMW M3 Competition 2025",
+        km: 8200,
+        price: 91500,
+        category: "Sportive"
     },
 
-
     {
-        name:
-            "Audi RS5 2025",
-
-        km:
-            12400,
-
-        price:
-            84900,
-
-        category:
-            "Sportive"
+        name: "BMW M4 Competition 2025",
+        km: 6500,
+        price: 94900,
+        category: "Sportive"
     },
 
-
     {
-        name:
-            "Audi RS7 2025",
-
-        km:
-            7600,
-
-        price:
-            119900,
-
-        category:
-            "Premium"
+        name: "BMW M5 2025",
+        km: 6100,
+        price: 124900,
+        category: "Sportive"
     },
 
-
     {
-        name:
-            "Mercedes-AMG C43 2025",
-
-        km:
-            10400,
-
-        price:
-            72500,
-
-        category:
-            "Sportive"
+        name: "BMW M8 Competition 2025",
+        km: 9800,
+        price: 145000,
+        category: "Sportive"
     },
 
+    {
+        name: "Audi RS3 2025",
+        km: 5400,
+        price: 69900,
+        category: "Sportive"
+    },
 
     {
-        name:
-            "Porsche 911 Carrera 2025",
+        name: "Audi RS5 2025",
+        km: 12400,
+        price: 84900,
+        category: "Sportive"
+    },
 
-        km:
-            5400,
+    {
+        name: "Audi RS6 Avant 2025",
+        km: 7600,
+        price: 119900,
+        category: "Premium"
+    },
 
-        price:
-            139900,
+    {
+        name: "Audi RS7 Sportback 2025",
+        km: 6800,
+        price: 129900,
+        category: "Premium"
+    },
 
-        category:
-            "Sportive"
+    {
+        name: "Audi R8 V10 Performance",
+        km: 11200,
+        price: 185000,
+        category: "Supercar"
+    },
+
+    {
+        name: "Mercedes-AMG A45 S 2025",
+        km: 8300,
+        price: 73500,
+        category: "Sportive"
+    },
+
+    {
+        name: "Mercedes-AMG C63 S E Performance 2025",
+        km: 5400,
+        price: 109900,
+        category: "Sportive"
+    },
+
+    {
+        name: "Mercedes-AMG E53 Hybrid 2025",
+        km: 7200,
+        price: 112000,
+        category: "Premium"
+    },
+
+    {
+        name: "Mercedes-AMG GT 63 S 2025",
+        km: 4900,
+        price: 189900,
+        category: "Supercar"
+    },
+
+    {
+        name: "Porsche 911 Carrera 2025",
+        km: 5400,
+        price: 139900,
+        category: "Sportive"
+    },
+
+    {
+        name: "Porsche 911 Carrera GTS 2025",
+        km: 3800,
+        price: 169900,
+        category: "Sportive"
+    },
+
+    {
+        name: "Porsche 911 Turbo S 2025",
+        km: 2900,
+        price: 249900,
+        category: "Supercar"
+    },
+
+    {
+        name: "Porsche 718 Cayman GT4 RS",
+        km: 4100,
+        price: 179900,
+        category: "Sportive"
+    },
+
+    {
+        name: "Lamborghini Huracán EVO",
+        km: 8200,
+        price: 239900,
+        category: "Supercar"
+    },
+
+    {
+        name: "Lamborghini Huracán Tecnica",
+        km: 5100,
+        price: 279900,
+        category: "Supercar"
+    },
+
+    {
+        name: "Lamborghini Temerario",
+        km: 1800,
+        price: 299900,
+        category: "Supercar"
+    },
+
+    {
+        name: "Lamborghini Revuelto",
+        km: 1200,
+        price: 519900,
+        category: "Supercar"
+    },
+
+    {
+        name: "Ferrari 296 GTB 2025",
+        km: 3200,
+        price: 329900,
+        category: "Supercar"
+    },
+
+    {
+        name: "Ferrari SF90 Stradale",
+        km: 4500,
+        price: 479900,
+        category: "Supercar"
+    },
+
+    {
+        name: "Ferrari 12Cilindri",
+        km: 2100,
+        price: 449900,
+        category: "Supercar"
+    },
+
+    {
+        name: "McLaren 750S",
+        km: 3600,
+        price: 319900,
+        category: "Supercar"
+    },
+
+    {
+        name: "McLaren Artura",
+        km: 5900,
+        price: 249900,
+        category: "Supercar"
+    },
+
+    {
+        name: "Aston Martin Vantage 2025",
+        km: 4700,
+        price: 199900,
+        category: "Sportive"
+    },
+
+    {
+        name: "Lamborghini Urus S",
+        km: 6800,
+        price: 259900,
+        category: "SUV"
+    },
+
+    {
+        name: "Porsche Cayenne Turbo GT",
+        km: 7500,
+        price: 189900,
+        category: "SUV"
+    },
+
+    {
+        name: "BMW XM Label",
+        km: 6200,
+        price: 169900,
+        category: "SUV"
+    },
+
+    {
+        name: "Audi RS Q8 Performance",
+        km: 5800,
+        price: 154900,
+        category: "SUV"
+    },
+
+    {
+        name: "Mercedes-AMG G63",
+        km: 9200,
+        price: 219900,
+        category: "SUV"
+    },
+
+    {
+        name: "Porsche Taycan Turbo GT",
+        km: 2700,
+        price: 209900,
+        category: "Électrique"
+    },
+
+    {
+        name: "Audi RS e-tron GT",
+        km: 4900,
+        price: 139900,
+        category: "Électrique"
+    },
+
+    {
+        name: "BMW i7 M70",
+        km: 5300,
+        price: 159900,
+        category: "Électrique"
     }
 ];
-
 
 function renderMarket() {
 
