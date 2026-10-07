@@ -92,8 +92,14 @@ const clientProfiles = [
         type: "Client particulier",
         budget: 100000,
         tolerance: 0.07
+    },
+    {
+        name: "Gwenolé",
+        type: "Client particulier",
+        budget: 350000,
+        tolerance: 0.15
     }
-];
+       ];
 
 
 /* =========================================================
