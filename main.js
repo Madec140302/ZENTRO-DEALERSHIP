@@ -972,9 +972,15 @@ function renderMarket() {
 
                     <div class="market-car-image">
 
-                        <span>🚘</span>
+    <img
+        src="images/bmw-m4-competition.jpg"
+        alt="BMW M4 Competition"
+        class="car-photo"
+        loading="lazy"
+        onerror="this.style.display='none'"
+    >
 
-                    </div>
+</div>
 
 
                     <div class="market-car-info">
