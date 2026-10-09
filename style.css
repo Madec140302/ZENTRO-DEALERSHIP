@@ -1844,3 +1844,35 @@ button:focus-visible {
         min-height: 180px;
     }
 }
+/* PHOTOS AUTOMOBILES ZENTRO */
+
+.market-car-image,
+.inventory-image {
+    position: relative;
+    overflow: hidden;
+    background: #080808;
+    border-radius: 12px;
+}
+
+.market-car-image {
+    height: 190px;
+}
+
+.inventory-image {
+    height: 190px;
+}
+
+.car-photo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    background: #080808;
+    transition: transform 0.3s ease;
+}
+
+.market-car:hover .car-photo,
+.inventory-card:hover .car-photo {
+    transform: scale(1.04);
+}
