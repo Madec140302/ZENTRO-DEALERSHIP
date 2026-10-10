@@ -563,8 +563,10 @@ function renderInventory() {
         card.className =
             "inventory-card";
 
-
-        card.innerHTML = `
+console.log("Voiture :", getCarName(car));
+console.log("Image :", getCarImage(getCarName(car)));
+       
+       card.innerHTML = `
 
            <div class="inventory-image">
 
