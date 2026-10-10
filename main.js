@@ -1051,7 +1051,7 @@ function renderMarket() {
                     <div class="market-car-image">
 
     <img
-        src="images/bmw-m4-competition.jpg"
+       src="images/BMW%20M4%202025.jpeg"
         alt="BMW M4 Competition"
         class="car-photo"
         loading="lazy"
