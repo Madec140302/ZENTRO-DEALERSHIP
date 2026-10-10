@@ -517,7 +517,10 @@ function getCarImage(carName) {
         normalizeCarName(file.replace(/\.jpeg$/i, "")) === name
     );
 
-    return "images/" + (match || "Aston Martin Vantage 2025.jpeg");
+    return new URL(
+    "images/" + (match || "Aston Martin Vantage 2025.jpeg"),
+    document.baseURI
+).href;
 }
 function renderInventory() {
 
