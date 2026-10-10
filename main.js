@@ -563,15 +563,20 @@ function renderInventory() {
 
         card.innerHTML = `
 
-            <div class="inventory-image">
+           <div class="inventory-image">
 
-                <div class="car-placeholder">
+    <img
+        src="${getCarImage(getCarName(car))}"
+        alt="${getCarName(car)}"
+        class="car-photo"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+    >
 
-                    ${getCarName(car)}
+    <div class="car-placeholder" style="display:none;">
+        ${getCarName(car)}
+    </div>
 
-                </div>
-
-            </div>
+</div>
 
 
             <div class="inventory-info">
