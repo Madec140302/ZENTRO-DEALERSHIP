@@ -450,7 +450,75 @@ document
 /* =========================================================
    STOCK
 ========================================================= */
+function normalizeCarName(name) {
+    return String(name || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+}
 
+const CAR_IMAGE_ALIASES = {
+    "bmwm2competition2025": "BMW M2 2025.jpeg",
+    "bmwm3competition2025": "BMW M3 2025.jpeg",
+    "bmwm4competition2025": "BMW M4 2025.jpeg",
+    "bmwm8competition2025": "BMW M8 2025.jpeg",
+    "mclaren750s": "Mclaren 720S.jpeg",
+    "mercedesamge53hybrid2025": "Mercedes-AMG E63 Hybride 2025.jpeg"
+};
+
+function getCarImage(carName) {
+    const name = normalizeCarName(carName);
+
+    if (CAR_IMAGE_ALIASES[name]) {
+        return "images/" + CAR_IMAGE_ALIASES[name];
+    }
+
+    const files = [
+        "Aston Martin Vantage 2025.jpeg",
+        "Audi R8 V10 Performance.jpeg",
+        "Audi RS Q8 Performance.jpeg",
+        "Audi RS e-tron GT.jpeg",
+        "Audi RS3 2025.jpeg",
+        "Audi RS5 2025.jpeg",
+        "Audi RS6 Avant 2025.jpeg",
+        "Audi RS7 Sportback 2025.jpeg",
+        "BMW XM Label.jpeg",
+        "BMW i7 M70.jpeg",
+        "BMW M2 2025.jpeg",
+        "BMW M3 2025.jpeg",
+        "BMW M4 2025.jpeg",
+        "BMW M5 2025.jpeg",
+        "BMW M8 2025.jpeg",
+        "Ferrari 12Cilindri.jpeg",
+        "Ferrari 296 GTB 2025.jpeg",
+        "Ferrari SF90 Stradale.jpeg",
+        "Lamborghini Huracan EVO.jpeg",
+        "Lamborghini Huracan Tecnica.jpeg",
+        "Lamborghini Revuelto.jpeg",
+        "Lamborghini Temerario.jpeg",
+        "Lamborghini Urus S.jpeg",
+        "Mclaren 720S.jpeg",
+        "Mclaren Artura.jpeg",
+        "Mercedes-AMG A45 S 2025.jpeg",
+        "Mercedes-AMG C63 S E Performance 2025.jpeg",
+        "Mercedes-AMG E63 Hybride 2025.jpeg",
+        "Mercedes-AMG G63.jpeg",
+        "Mercedes-AMG GT 63 S 2025.jpeg",
+        "Porsche 718 Cayman GT4 RS.jpeg",
+        "Porsche 911 Carrera 2025.jpeg",
+        "Porsche 911 Carrera GTS 2025.jpeg",
+        "Porsche 911 Turbo S 2025.jpeg",
+        "Porsche Cayenne Turbo GT.jpeg",
+        "Porsche Taycan Turbo GT.jpeg"
+    ];
+
+    const match = files.find(file =>
+        normalizeCarName(file.replace(/\.jpeg$/i, "")) === name
+    );
+
+    return "images/" + (match || "Aston Martin Vantage 2025.jpeg");
+}
 function renderInventory() {
 
     const container =
