@@ -459,12 +459,12 @@ function normalizeCarName(name) {
 }
 
 const CAR_IMAGE_ALIASES = {
-    "bmwm2competition2025": "BMW M2 2025.jpeg",
-    "bmwm3competition2025": "BMW M3 2025.jpeg",
-    "bmwm4competition2025": "BMW M4 2025.jpeg",
-    "bmwm8competition2025": "BMW M8 2025.jpeg",
-    "mclaren750s": "Mclaren 720S.jpeg",
-    "mercedesamge53hybrid2025": "Mercedes-AMG E63 Hybride 2025.jpeg"
+"bmwm2competition2025": "BMW M2 2025.jpeg",
+"bmwm3competition2025": "BMW M3 2025.jpeg",
+"bmwm4competition2025": "BMW m4 competition 2025.jpeg",
+"bmwm8competition2025": "BMW M8 2025.jpeg",
+"mclaren750s": "Mclaren 720S.jpeg",
+"mercedesamge53hybrid2025": "Mercedes-AMG E63 Hybride 2025.jpeg"
 };
 
 function getCarImage(carName) {
