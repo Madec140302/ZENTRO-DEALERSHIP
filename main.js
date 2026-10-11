@@ -461,7 +461,6 @@ function normalizeCarName(name) {
 const CAR_IMAGE_ALIASES = {
 "astonmartinvantage2025": "Aston Martin Vantage 2025.jpeg",
 
-
 "audir8v10performance": "Audi R8 V10 Performance.jpeg",
 "audirsq8performance": "Audi RS Q8 Performance.jpeg",
 "audirsetrongt": "Audi RS e-tron GT.jpeg",
@@ -509,7 +508,6 @@ const CAR_IMAGE_ALIASES = {
 "porsche911turbos2025": "Porsche 911 Turbo S 2025.jpeg",
 "porschecayenneturbogt": "Porsche Cayenne Turbo GT.jpeg",
 "porschetaycanturbogt": "Porsche Taycan Turbo GT.jpeg"
-
 
 };
 
