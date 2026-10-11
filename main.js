@@ -459,58 +459,62 @@ function normalizeCarName(name) {
 }
 
 const CAR_IMAGE_ALIASES = {
-    "astonmartinvantage2025": "Aston Martin Vantage 2025.jpeg",
+"astonmartinvantage2025": "Aston Martin Vantage 2025.jpeg",
 
-    "audir8v10performance": "Audi R8 V10 Performance.jpeg",
-    "audirsq8performance": "Audi RS Q8 Performance.jpeg",
-    "audirsetrongt": "Audi RS e-tron GT.jpeg",
-    "audirs32025": "Audi RS3 2025.jpeg",
-    "audirs52025": "Audi RS5 2025.jpeg",
-    "audirs6avant2025": "Audi RS6 Avant 2025.jpeg",
-    "audirs7sportback2025": "Audi RS7 Sportback 2025.jpeg",
 
-    "bmwxmlabel": "BMW XM Label.jpeg",
-    "bmwi7m70": "BMW i7 M70.jpeg",
-    "bmwm2competition2025": "BMW M2 2025.jpeg",
-    "bmwm22025": "BMW M2 2025.jpeg",
-    "bmwm3competition2025": "BMW M3 2025.jpeg",
-    "bmwm32025": "BMW M3 2025.jpeg",
-    "bmwm4competition2025": "BMW m4 competition 2025.jpeg",
-    "bmwm42025": "BMW M4 2025.jpeg",
-    "bmwm52025": "BMW M5 2025.jpeg",
-    "bmwm8competition2025": "BMW M8 2025.jpeg",
-    "bmwm82025": "BMW M8 2025.jpeg",
+"audir8v10performance": "Audi R8 V10 Performance.jpeg",
+"audirsq8performance": "Audi RS Q8 Performance.jpeg",
+"audirsetrongt": "Audi RS e-tron GT.jpeg",
+"audirs32025": "Audi RS3 2025.jpeg",
+"audirs52025": "Audi RS5 2025.jpeg",
+"audirs6avant2025": "Audi RS6 Avant 2025.jpeg",
+"audirs7sportback2025": "Audi RS7 Sportback 2025.jpeg",
 
-    "ferrari12cilindri": "Ferrari 12Cilindri.jpeg",
-    "ferrari296gtb2025": "Ferrari 296 GTB 2025.jpeg",
-    "ferrarisf90stradale": "Ferrari SF90 Stradale.jpeg",
+"bmwxmlabel": "BMW XM Label.jpeg",
+"bmwi7m70": "BMW i7 M70.jpeg",
+"bmwm2competition2025": "BMW M2 2025.jpeg",
+"bmwm22025": "BMW M2 2025.jpeg",
+"bmwm3competition2025": "BMW M3 2025.jpeg",
+"bmwm32025": "BMW M3 2025.jpeg",
+"bmwm4competition2025": "BMW m4 competition 2025.jpeg",
+"bmwm42025": "BMW M4 2025.jpeg",
+"bmwm52025": "BMW M5 2025.jpeg",
+"bmwm8competition2025": "BMW M8 2025.jpeg",
+"bmwm82025": "BMW M8 2025.jpeg",
 
-    "lamborghinihuracanevo": "Lamborghini Huracan EVO.jpeg",
-    "lamborghinihuracantecnica": "Lamborghini Huracan Tecnica.jpeg",
-    "lamborghinirevuelto": "Lamborghini Revuelto.jpeg",
-    "lamborghinitemerario": "Lamborghini Temerario.jpeg",
-    "lamborghiniuruss": "Lamborghini Urus S.jpeg",
+"ferrari12cilindri": "Ferrari 12Cilindri.jpeg",
+"ferrari296gtb2025": "Ferrari 296 GTB 2025.jpeg",
+"ferrarisf90stradale": "Ferrari SF90 Stradale.jpeg",
 
-    "mclaren720s": "Mclaren 720S.jpeg",
-    "mclaren750s": "Mclaren 720S.jpeg",
-    "mclarenartura": "Mclaren Artura.jpeg",
+"lamborghinihuracanevo": "Lamborghini Huracan EVO.jpeg",
+"lamborghinihuracantecnica": "Lamborghini Huracan Tecnica.jpeg",
+"lamborghinirevuelto": "Lamborghini Revuelto.jpeg",
+"lamborghinitemerario": "Lamborghini Temerario.jpeg",
+"lamborghiniuruss": "Lamborghini Urus S.jpeg",
 
-    "mercedesamga45s2025": "Mercedes-AMG A45 S 2025.jpeg",
-    "mercedesamgc63seperformance2025": "Mercedes-AMG C63 S E Performance 2025.jpeg",
-    "mercedesamge63hybrid2025": "Mercedes-AMG E63 Hybride 2025.jpeg",
-    "mercedesamgg63": "Mercedes-AMG G63.jpeg",
-    "mercedesamggt63s2025": "Mercedes-AMG GT 63 S 2025.jpeg",
+"mclaren720s": "Mclaren 720S.jpeg",
+"mclaren750s": "Mclaren 720S.jpeg",
+"mercedesamge53hybrid2025": "Mercedes-AMG E63 Hybride 2025.jpeg"
+"mclarenartura": "Mclaren Artura.jpeg",
 
-    "porsche718caymangt4rs": "Porsche 718 Cayman GT4 RS.jpeg",
-    "porsche911carrera2025": "Porsche 911 Carrera 2025.jpeg",
-    "porsche911carreragts2025": "Porsche 911 Carrera GTS 2025.jpeg",
-    "porsche911turbos2025": "Porsche 911 Turbo S 2025.jpeg",
-    "porschecayenneturbogt": "Porsche Cayenne Turbo GT.jpeg",
-    "porschetaycanturbogt": "Porsche Taycan Turbo GT.jpeg"
+"mercedesamga45s2025": "Mercedes-AMG A45 S 2025.jpeg",
+"mercedesamgc63seperformance2025": "Mercedes-AMG C63 S E Performance 2025.jpeg",
+"mercedesamge63hybrid2025": "Mercedes-AMG E63 Hybride 2025.jpeg",
+"mercedesamgg63": "Mercedes-AMG G63.jpeg",
+"mercedesamggt63s2025": "Mercedes-AMG GT 63 S 2025.jpeg",
+
+"porsche718caymangt4rs": "Porsche 718 Cayman GT4 RS.jpeg",
+"porsche911carrera2025": "Porsche 911 Carrera 2025.jpeg",
+"porsche911carrergts2025": "Porsche 911 Carrera GTS 2025.jpeg",
+"porsche911turbos2025": "Porsche 911 Turbo S 2025.jpeg",
+"porschecayenneturbogt": "Porsche Cayenne Turbo GT.jpeg",
+"porschetaycanturbogt": "Porsche Taycan Turbo GT.jpeg"
+
+
 };
-const name = normalizeCarName(carName);
 
-```
+function getCarImage(carName) {
+
 const CAR_IMAGE_ALIASES = {
     "astonmartinvantage2025": "Aston Martin Vantage 2025.jpeg",
 
